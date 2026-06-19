@@ -1,44 +1,34 @@
-# Issue tracker: Beads (bd)
+# Issue tracker: GitHub
 
-Issues for this repo live in the local Beads Dolt database under `.beads/`. Use the `bd` CLI for all issue operations — not GitHub Issues, not markdown files under `.scratch/`.
+Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
+
+## Conventions
+
+- **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
+- **Read an issue**: `gh issue view <number> --comments`, filtering comments by `jq` and also fetching labels.
+- **List issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with appropriate `--label` and `--state` filters.
+- **Comment on an issue**: `gh issue comment <number> --body "..."`
+- **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
+- **Close**: `gh issue close <number> --comment "..."`
+
+Infer the repo from `git remote -v` — `gh` does this automatically when run inside a clone.
+
+## Pull requests as a triage surface
+
+**PRs as a request surface: no.**
+
+When set to `yes`, PRs run through the same labels and states as issues, using the `gh pr` equivalents:
+
+- **Read a PR**: `gh pr view <number> --comments` and `gh pr diff <number>` for the diff.
+- **List external PRs for triage**: `gh pr list --state open --json number,title,body,labels,author,authorAssociation,comments` then keep only `authorAssociation` of `CONTRIBUTOR`, `FIRST_TIME_CONTRIBUTOR`, or `NONE` (drop `OWNER`/`MEMBER`/`COLLABORATOR`).
+- **Comment / label / close**: `gh pr comment`, `gh pr edit --add-label`/`--remove-label`, `gh pr close`.
+
+GitHub shares one number space across issues and PRs, so a bare `#42` may be either — resolve with `gh pr view 42` and fall back to `gh issue view 42`.
 
 ## When a skill says "publish to the issue tracker"
 
-Create an issue:
-
-```bash
-bd create "Title" -d "Description" -t task -p 1
-bd label add <id> <label>   # triage labels — see triage-labels.md
-```
-
-Add dependencies when needed:
-
-```bash
-bd dep add <child-id> <parent-id>
-```
+Create a GitHub issue.
 
 ## When a skill says "fetch the relevant ticket"
 
-```bash
-bd show <id>
-bd list --json
-bd list --label needs-triage
-bd ready --json
-```
-
-## Essential workflow
-
-- Run `bd prime` at session start for full workflow context and persistent memories
-- Find ready work: `bd ready`
-- Claim work: `bd update <id> --claim`
-- Close work: `bd close <id> --reason "..."`
-- Labels: `bd label add`, `bd label remove`, `bd label list` — see `triage-labels.md`
-- Persistent memory: `bd remember "..."` — do not create MEMORY.md or markdown TODO lists
-
-## Storage
-
-- **Source of truth:** Dolt database in `.beads/` (embedded mode)
-- **Export:** `.beads/issues.jsonl` is a passive export for review/interop — not the source of truth
-- **Sync:** `bd dolt push` / `bd dolt pull` against `refs/dolt/data` on the git remote
-
-See [beads docs](https://github.com/gastownhall/beads) and `bd prime` for the current command reference.
+Run `gh issue view <number> --comments`.

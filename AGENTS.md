@@ -110,11 +110,11 @@ bd prime                # Refresh Beads context
 
 ### Issue tracker
 
-Issues tracked with Beads (`bd`) in `.beads/`. See `docs/agents/issue-tracker.md`.
+GitHub Issues on `graffhyrum/SpecTraitLens` via `gh` CLI; external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
-Five canonical triage roles mapped to `bd label` strings (defaults). See `docs/agents/triage-labels.md`.
+Five canonical triage roles mapped to GitHub label strings (defaults). See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
