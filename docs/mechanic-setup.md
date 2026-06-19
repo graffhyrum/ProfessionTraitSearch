@@ -106,7 +106,7 @@ After `/reload`, in-game test results appear in Mechanic → Tests when `!Mechan
 | Check | Result |
 |-------|--------|
 | `just test-sandbox` | 3 passed |
-| `just test-busted` | 17 passed |
+| `just test-busted` | 14 passed |
 | `just lint` | 0 errors |
 | `just validate` | TOC files OK; interface `120007` flagged outdated by Mechanic (expected until validator catches up) |
 

@@ -5,14 +5,6 @@ PL.MinimapButton = MinimapButton
 
 local ICON = "Interface\\Icons\\INV_Misc_Book_09"
 
-local function ensureSavedDB()
-	if SpecTraitLensDB and not PerkLensDB then
-		PerkLensDB = SpecTraitLensDB
-	end
-	PerkLensDB = PerkLensDB or {}
-	return PerkLensDB
-end
-
 local function tooltipText(tooltip)
 	if not tooltip or not tooltip.AddLine then
 		return
@@ -32,7 +24,7 @@ function MinimapButton:Init()
 	end
 	self.initialized = true
 
-	local db = ensureSavedDB()
+	local db = PL.Controller:GetSavedDB()
 	db.minimap = db.minimap or { hide = false }
 
 	local ldb = LibStub("LibDataBroker-1.1"):NewDataObject("PerkLens", {

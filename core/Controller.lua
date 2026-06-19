@@ -34,6 +34,10 @@ local function ensureSavedDB()
 	return PerkLensDB
 end
 
+function Controller:GetSavedDB()
+	return ensureSavedDB()
+end
+
 function Controller:GetCharDB()
 	local db = ensureSavedDB()
 	db.char = db.char or {}
