@@ -2142,7 +2142,8 @@
         "UIDropDownMenu_AddButton",
         "UIDropDownMenu_CreateInfo",
         "UIDropDownMenu_SetWidth",
-        "UIDropDownMenu_Initialize"
+        "UIDropDownMenu_Initialize",
+        "RunNextFrame"
     ],
     "Lua.diagnostics.disable": [
         "assign-type-mismatch"

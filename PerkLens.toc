@@ -42,6 +42,8 @@ core\SpecIndex.lua
 
 core\SpecSearch.lua
 
+core\SpecNavigation.lua
+
 core\Controller.lua
 
 ui\SpecBrowser.lua

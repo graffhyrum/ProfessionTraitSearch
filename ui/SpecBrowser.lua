@@ -125,6 +125,7 @@ end
 
 local function createRow(parent)
 	local f = CreateFrame("Frame", nil, parent)
+	f:EnableMouse(true)
 
 	f.bg = f:CreateTexture(nil, "BACKGROUND")
 	f.bg:SetPoint("TOPLEFT", 0, 0)
@@ -143,6 +144,31 @@ local function createRow(parent)
 	f.badge:SetPoint("TOPRIGHT", -PADDING_X, -6)
 	f.badge:SetJustifyH("RIGHT")
 	f.badge:SetTextColor(0.55, 0.78, 1)
+
+	f:SetScript("OnMouseUp", function(self, button)
+		if button == "LeftButton" and self.row then
+			PL.ProfessionsHook:NavigateToRow(self.row)
+		end
+	end)
+	f:SetScript("OnEnter", function(self)
+		if not self.row then
+			return
+		end
+		local tint = rowTint(self.row)
+		self.bg:SetColorTexture(
+			math.min(tint[1] + 0.1, 1),
+			math.min(tint[2] + 0.1, 1),
+			math.min(tint[3] + 0.1, 1),
+			math.min(tint[4] + 0.12, 0.4)
+		)
+	end)
+	f:SetScript("OnLeave", function(self)
+		if not self.row then
+			return
+		end
+		local tint = rowTint(self.row)
+		self.bg:SetColorTexture(tint[1], tint[2], tint[3], tint[4])
+	end)
 
 	return f
 end
@@ -224,7 +250,7 @@ local function layoutRows(browser)
 		rowFrame:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, -y)
 		rowFrame:SetHeight(h)
 		rowFrame:Show()
-		rowFrame.pathID = row.pathID
+		rowFrame.row = row
 
 		y = y + h + ROW_GAP
 	end

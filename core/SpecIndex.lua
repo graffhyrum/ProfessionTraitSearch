@@ -30,7 +30,7 @@ local function pathName(configID, pathID, description, nodeInfo)
 	return ""
 end
 
-local function walkPath(rows, configID, pathID, tabName, depth, parentPathID)
+local function walkPath(rows, configID, skillLineID, tabTreeID, pathID, tabName, depth, parentPathID)
 	local nodeInfo = C_Traits.GetNodeInfo(configID, pathID)
 	local description = C_ProfSpecs.GetDescriptionForPath(pathID) or ""
 	local perks = C_ProfSpecs.GetPerksForPath(pathID) or {}
@@ -45,6 +45,8 @@ local function walkPath(rows, configID, pathID, tabName, depth, parentPathID)
 		perkRows[#perkRows + 1] = {
 			kind = "perk",
 			rowKey = "perk:" .. tostring(perk.perkID),
+			skillLineID = skillLineID,
+			tabTreeID = tabTreeID,
 			tabName = tabName,
 			depth = depth + 1,
 			parentPathID = pathID,
@@ -71,6 +73,8 @@ local function walkPath(rows, configID, pathID, tabName, depth, parentPathID)
 	rows[#rows + 1] = {
 		kind = "path",
 		rowKey = "path:" .. tostring(pathID),
+		skillLineID = skillLineID,
+		tabTreeID = tabTreeID,
 		tabName = tabName,
 		depth = depth,
 		parentPathID = parentPathID,
@@ -90,7 +94,7 @@ local function walkPath(rows, configID, pathID, tabName, depth, parentPathID)
 	end
 
 	for _, childID in ipairs(C_ProfSpecs.GetChildrenForPath(pathID) or {}) do
-		walkPath(rows, configID, childID, tabName, depth + 1, pathID)
+		walkPath(rows, configID, skillLineID, tabTreeID, childID, tabName, depth + 1, pathID)
 	end
 end
 
@@ -110,6 +114,7 @@ function SpecIndex.Build(context)
 			rows[#rows + 1] = {
 				kind = "tab",
 				rowKey = "tab:" .. tostring(tabTreeID),
+				skillLineID = skillLineID,
 				tabName = tabInfo.name,
 				tabTreeID = tabTreeID,
 				depth = 0,
@@ -117,7 +122,7 @@ function SpecIndex.Build(context)
 				description = tabInfo.description or "",
 				searchableText = (tabInfo.name or "") .. "\n" .. (tabInfo.description or ""),
 			}
-			walkPath(rows, configID, tabInfo.rootNodeID, tabInfo.name, 1, nil)
+			walkPath(rows, configID, skillLineID, tabTreeID, tabInfo.rootNodeID, tabInfo.name, 1, nil)
 		end
 	end
 

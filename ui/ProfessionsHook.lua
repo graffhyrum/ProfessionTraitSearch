@@ -7,6 +7,8 @@ local hooked = {}
 local indexMode = false
 local specTabID
 local indexTab
+local pendingNav
+local navFrame
 
 local TAB_ICON = "Interface\\Icons\\INV_Misc_Book_09"
 local TAB_ANCHOR_X = 0
@@ -107,6 +109,98 @@ local function updateIndexTab()
 	if indexTab.SelectedTexture then
 		indexTab.SelectedTexture:SetShown(indexMode)
 	end
+end
+
+local function specPageMatchesTarget(specPage, target)
+	if not specPage or not specPage.GetProfessionID or not target then
+		return false
+	end
+	return specPage:GetProfessionID() == target.skillLineID
+end
+
+local function applyPendingNav()
+	local target = pendingNav
+	if not target or not ProfessionsFrame or not specTabID then
+		return
+	end
+
+	local specPage = getSpecPage()
+	if not specPageMatchesTarget(specPage, target) then
+		return
+	end
+
+	pendingNav = nil
+
+	specPage:SetSelectedTab(target.tabTreeID)
+	if target.pathID then
+		if specPage.SetDefaultPath then
+			specPage:SetDefaultPath(target.pathID)
+		end
+		if specPage.SetDefaultTab then
+			specPage:SetDefaultTab(target.tabTreeID)
+		end
+		if EventRegistry and EventRegistry.TriggerEvent then
+			EventRegistry:TriggerEvent("ProfessionsSpecializations.PathSelected", target.pathID, true)
+		elseif specPage.SetDetailedPanel then
+			specPage:SetDetailedPanel(target.pathID)
+		end
+	end
+end
+
+local function ensureNavFrame()
+	if navFrame then
+		return navFrame
+	end
+	navFrame = CreateFrame("Frame")
+	navFrame:RegisterEvent("TRADE_SKILL_LIST_UPDATE")
+	navFrame:SetScript("OnEvent", function()
+		applyPendingNav()
+	end)
+	return navFrame
+end
+
+local function schedulePendingNav()
+	ensureNavFrame()
+	RunNextFrame(applyPendingNav)
+end
+
+function ProfessionsHook:NavigateToRow(row)
+	local target = PL.SpecNavigation and PL.SpecNavigation.ResolveTarget(row)
+	if not target then
+		return
+	end
+
+	if PL.SpecBrowser and PL.SpecBrowser.standalone and PL.SpecBrowser.standalone:IsShown() then
+		PL.SpecBrowser:HideStandalone()
+	end
+
+	if indexMode then
+		applyIndexMode(false)
+	end
+
+	if C_AddOns and C_AddOns.LoadAddOn and not C_AddOns.IsAddOnLoaded("Blizzard_Professions") then
+		C_AddOns.LoadAddOn("Blizzard_Professions")
+	end
+
+	if not ProfessionsFrame then
+		return
+	end
+
+	pendingNav = target
+
+	if C_TradeSkillUI and C_TradeSkillUI.OpenTradeSkill then
+		C_TradeSkillUI.OpenTradeSkill(target.skillLineID)
+	end
+
+	if not ProfessionsFrame:IsShown() and ShowUIPanel then
+		ShowUIPanel(ProfessionsFrame)
+	end
+
+	if ProfessionsFrame.SetTab and specTabID then
+		ProfessionsFrame:SetTab(specTabID, true)
+	end
+
+	schedulePendingNav()
 end
 
 local function applyIndexMode(enabled)

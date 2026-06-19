@@ -46,6 +46,7 @@ function M.load_core()
 	M.load("core/RowDisplay.lua")
 	M.load("core/SpecIndex.lua")
 	M.load("core/SpecSearch.lua")
+	M.load("core/SpecNavigation.lua")
 	M.load("core/Controller.lua", "PerkLens")
 end
 
