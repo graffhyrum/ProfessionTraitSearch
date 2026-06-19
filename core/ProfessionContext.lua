@@ -66,3 +66,21 @@ function ProfessionContext.GetKnowledgeAvailable(skillLineID)
 	local info = C_ProfSpecs.GetCurrencyInfoForSkillLine(skillLineID)
 	return info and info.numAvailable or 0
 end
+
+function ProfessionContext.ResolveForIndex(charDB, preferActive)
+	local resolved
+	if preferActive then
+		resolved = ProfessionContext.GetActiveContext()
+	end
+	if not resolved and charDB and charDB.lastSkillLineID then
+		resolved = ProfessionContext.GetContextForSkillLine(charDB.lastSkillLineID)
+	end
+	if not resolved then
+		resolved = ProfessionContext.GetActiveContext()
+	end
+	if not resolved then
+		local list = ProfessionContext.ListSpecSkillLines()
+		resolved = list[1]
+	end
+	return resolved
+end

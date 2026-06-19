@@ -262,6 +262,7 @@ local function applyIndexMode(enabled)
 
 	if indexMode then
 		setBlizzardSpecChromeVisible(false)
+		PL.Controller:SetViewMode("embedded")
 		local active = PL.ProfessionContext.GetActiveContext()
 		if active then
 			PL.Controller:SetSkillLine(active.skillLineID)
@@ -270,6 +271,11 @@ local function applyIndexMode(enabled)
 			PL.Controller:Refresh()
 		end
 	else
+		if PL.SpecBrowser.standalone and PL.SpecBrowser.standalone:IsShown() then
+			PL.Controller:SetViewMode("standalone")
+		else
+			PL.Controller:SetViewMode("closed")
+		end
 		if wasIndexMode then
 			restoreBlizzardSpecUI()
 		else

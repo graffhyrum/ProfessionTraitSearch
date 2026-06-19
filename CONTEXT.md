@@ -28,6 +28,9 @@ Progress seam — `IsUnearned`, `IsCompleted`, and `IsEarned` centralize earned/
 **RowDisplay**:
 UI seam — `DisplayName` and `PerkBadgeText` map row kinds to player-facing labels.
 
+**ViewMode**:
+Controller surface for index context policy — `embedded` (Professions spec-tab overlay), `standalone` (`/pl` window), or `closed`. UI sets mode; `embedded` prefers active profession context when rebuilding the index.
+
 **Searchable text**:
 Path description plus perk descriptions on that path — powers keyword search.
 _Avoid_: search index

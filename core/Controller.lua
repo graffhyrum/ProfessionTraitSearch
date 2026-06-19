@@ -11,8 +11,15 @@ local allRows = {}
 local visibleRows = {}
 local indexDirty = true
 local listening = false
+local viewMode = "closed"
 local callbacks = {}
 local eventFrame
+
+local VIEW_MODES = {
+	embedded = true,
+	standalone = true,
+	closed = true,
+}
 
 local TRAIT_EVENTS = {
 	"TRAIT_CONFIG_UPDATED",
@@ -101,26 +108,25 @@ function Controller:SetListening(active)
 	end
 end
 
+function Controller:SetViewMode(mode)
+	if VIEW_MODES[mode] then
+		viewMode = mode
+	end
+end
+
+function Controller:GetViewMode()
+	return viewMode
+end
+
 function Controller:InvalidateIndex()
 	indexDirty = true
 end
 
 function Controller:RebuildIndex()
 	local charDB = self:GetCharDB()
-	local preferActive = PL.ProfessionsHook and PL.ProfessionsHook:IsIndexMode()
-	if preferActive then
-		context = PL.ProfessionContext.GetActiveContext()
-	end
-	if not context and charDB.lastSkillLineID then
-		context = PL.ProfessionContext.GetContextForSkillLine(charDB.lastSkillLineID)
-	end
-	if not context then
-		context = PL.ProfessionContext.GetActiveContext()
-	end
-	if not context then
-		local list = PL.ProfessionContext.ListSpecSkillLines()
-		context = list[1]
-	end
+	-- Embedded index mode prefers active profession context (ProfessionsFrame in-game).
+	local preferActive = viewMode == "embedded"
+	context = PL.ProfessionContext.ResolveForIndex(charDB, preferActive)
 	if context then
 		charDB.lastSkillLineID = context.skillLineID
 	end

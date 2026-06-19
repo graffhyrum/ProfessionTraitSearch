@@ -485,11 +485,17 @@ function SpecBrowser:CreateStandalone()
 	f:SetScript("OnDragStart", f.StartMoving)
 	f:SetScript("OnDragStop", f.StopMovingOrSizing)
 	f:SetScript("OnShow", function()
+		PL.Controller:SetViewMode("standalone")
 		PL.Controller:SetListening(true)
 		PL.Controller:Refresh()
 		SpecBrowser:Update(f)
 	end)
 	f:SetScript("OnHide", function()
+		if SpecBrowser.embedded and SpecBrowser.embedded:IsShown() then
+			PL.Controller:SetViewMode("embedded")
+		else
+			PL.Controller:SetViewMode("closed")
+		end
 		PL.Controller:SetListening(false)
 	end)
 
@@ -520,6 +526,8 @@ function SpecBrowser:CreateEmbedded(parent)
 	f:SetScript("OnHide", function()
 		if not (self.standalone and self.standalone:IsShown()) then
 			PL.Controller:SetListening(false)
+		else
+			PL.Controller:SetViewMode("standalone")
 		end
 	end)
 	self.embedded = f
