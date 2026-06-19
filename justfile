@@ -17,7 +17,11 @@ default:
 link-mechanic MECHANIC_REPO:
     $target = (Resolve-Path '{{MECHANIC_REPO}}').Path; $addonsDir = Split-Path '{{root}}' -Parent; $link = Join-Path $addonsDir 'Mechanic'; if (Test-Path $link) { Remove-Item $link -Force -Recurse -ErrorAction SilentlyContinue }; New-Item -ItemType Junction -Path $link -Target $target | Out-Null; Write-Host "Linked $link -> $target"
 
+setup-hooks:
+    bun install
+
 bootstrap MECHANIC_REPO="C:/Tools/Mechanic":
+    @just setup-hooks
     @just _require-mech
     @just link-mechanic {{MECHANIC_REPO}}
     mech setup --skip-config

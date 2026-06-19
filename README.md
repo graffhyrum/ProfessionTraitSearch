@@ -14,9 +14,11 @@ Domain terms: see [UBIQUITOUS_LANGUAGE.md](UBIQUITOUS_LANGUAGE.md) (player-facin
 ## Development
 
 ```bash
-just bootstrap   # first time
+just bootstrap   # first time (installs commit-msg hook via bun)
 just test
 just check
 ```
+
+Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) (e.g. `feat(ui): add search filter`). Re-run `just setup-hooks` if hooks are missing after clone.
 
 See [docs/mechanic-setup.md](docs/mechanic-setup.md).
