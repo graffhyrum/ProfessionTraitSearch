@@ -63,7 +63,7 @@ end
 function SpecSearch.Filter(rows, options)
 	options = options or {}
 	local query = lower(options.searchText)
-	local majorOnly = options.majorPipsOnly == true
+	local majorOnly = options.majorPerksOnly == true
 	local unearnedOnly = options.unearnedOnly == true
 	local visible = {}
 	local out = {}

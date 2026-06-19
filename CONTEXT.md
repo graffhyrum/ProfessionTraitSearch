@@ -14,8 +14,8 @@ _Avoid in UI_: tab, trait tree
 Spendable dial under a specialization (e.g. Seams, Rich Deposits). `pathID` via `C_ProfSpecs`; row `kind = "path"`.
 _Avoid in UI_: path, node, talent, trait
 
-**Perk / pip**:
-Milestone on a sub-specialization rank dial. `isMajorPerk` → major pip.
+**Perk**:
+Milestone on a sub-specialization rank dial. `isMajorPerk` → major perk.
 _Avoid in UI_: trait point, rank bonus
 
 **Specialization index** (player) / **spec index** (internal):
@@ -44,5 +44,5 @@ _Avoid in UI_: points (unless Blizzard does)
 > "Search for Multicraft in Midnight Mining specs."
 > → Open `/pl` or the **Specialization index** on the Professions **Specializations** page; type `Multicraft`; matching sub-specializations and perks appear with parent context.
 
-> "Show only major pips I haven't earned yet."
-> → Enable **Major pips only** + **Unearned only**.
+> "Show only major perks I haven't earned yet."
+> → Enable **Major perks only** + **Unearned only**.

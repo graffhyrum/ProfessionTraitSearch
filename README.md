@@ -8,7 +8,7 @@ Domain terms: see [UBIQUITOUS_LANGUAGE.md](UBIQUITOUS_LANGUAGE.md) (player-facin
 
 - Tree list of specializations, sub-specializations, and perks with descriptions visible at once
 - Text search (e.g. find Multicraft)
-- Filters: major pips only, unearned only
+- Filters: major perks only, unearned only
 - Standalone panel (`/pl`) and embedded toggle on the Professions Specializations page
 
 ## Development

@@ -42,7 +42,7 @@ Multi-context repo (presence of `CONTEXT-MAP.md` at the root):
 
 When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `UBIQUITOUS_LANGUAGE.md` and `CONTEXT.md`.
 
-- **Player-facing copy** (UI, README, errors): Blizzard-aligned terms — Specialization, Sub-specialization, Perk/pip, Knowledge.
+- **Player-facing copy** (UI, README, errors): Blizzard-aligned terms — Specialization, Sub-specialization, Perk, Knowledge.
 - **Internal/code** (modules, row kinds, APIs): spec tab, path, perk, spec index — see the naming seam in `UBIQUITOUS_LANGUAGE.md`.
 
 Don't drift to synonyms the glossary explicitly avoids.

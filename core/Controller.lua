@@ -48,13 +48,21 @@ end
 function Controller:GetCharDB()
 	local db = ensureSavedDB()
 	db.char = db.char or {}
-	db.char[charKey()] = db.char[charKey()] or {
-		searchText = "",
-		majorPipsOnly = false,
-		unearnedOnly = false,
-		lastSkillLineID = nil,
-	}
-	return db.char[charKey()]
+	local key = charKey()
+	local charDB = db.char[key]
+	if not charDB then
+		charDB = {
+			searchText = "",
+			majorPerksOnly = false,
+			unearnedOnly = false,
+			lastSkillLineID = nil,
+		}
+		db.char[key] = charDB
+	elseif charDB.majorPipsOnly ~= nil and charDB.majorPerksOnly == nil then
+		charDB.majorPerksOnly = charDB.majorPipsOnly == true
+		charDB.majorPipsOnly = nil
+	end
+	return charDB
 end
 
 function Controller.RegisterCallback(fn)
@@ -71,7 +79,7 @@ local function filterOptions()
 	local charDB = Controller:GetCharDB()
 	return {
 		searchText = charDB.searchText or "",
-		majorPipsOnly = charDB.majorPipsOnly == true,
+		majorPerksOnly = charDB.majorPerksOnly == true,
 		unearnedOnly = charDB.unearnedOnly == true,
 	}
 end
@@ -178,13 +186,13 @@ function Controller:GetSearchText()
 	return self:GetCharDB().searchText or ""
 end
 
-function Controller:SetMajorPipsOnly(enabled)
-	self:GetCharDB().majorPipsOnly = enabled == true
+function Controller:SetMajorPerksOnly(enabled)
+	self:GetCharDB().majorPerksOnly = enabled == true
 	self:Refresh()
 end
 
-function Controller:GetMajorPipsOnly()
-	return self:GetCharDB().majorPipsOnly == true
+function Controller:GetMajorPerksOnly()
+	return self:GetCharDB().majorPerksOnly == true
 end
 
 function Controller:SetUnearnedOnly(enabled)

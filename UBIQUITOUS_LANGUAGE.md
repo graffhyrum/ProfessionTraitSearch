@@ -28,7 +28,7 @@ PerkLens spans Blizzard's player vocabulary and `C_ProfSpecs` implementation nam
 | **Profession** | Mining | skill line context | `skillLineID`, `C_TradeSkillUI` |
 | **Specialization** | Plentiful Ores, Meticulous Mining, Over-LODED | spec **tab** | `C_ProfSpecs.GetTabInfo`, `kind = "tab"` |
 | **Sub-specialization** | Seams, Rich Deposits (under Meticulous Mining) | **path** | `C_ProfSpecs.GetDescriptionForPath`, `kind = "path"` |
-| **Perk** / **pip** | Dial milestone bonus (major pip = capstone pip) | **perk** | `perkID`, `isMajorPerk`, `kind = "perk"` |
+| **Perk** | Dial milestone bonus (major perk = capstone perk) | **perk** | `perkID`, `isMajorPerk`, `kind = "perk"` |
 | **Knowledge** | Unspent spec currency | knowledge currency | `C_ProfSpecs.GetCurrencyInfoForSkillLine` |
 
 Nested paths (deeper dials under a sub-specialization) are still **Sub-specializations** to the player and **paths** internally — same mapping at every path depth.
@@ -44,8 +44,7 @@ The tab **root path** (`tabInfo.rootNodeID`, path layer `Root`) is the unlock/sp
 | **Profession** | A crafting skill (Mining, Blacksmithing, …) | Trade skill (when meaning the spec tree) |
 | **Specialization** | A top-level branch of a profession spec tree (e.g. Plentiful Ores, Meticulous Mining, Over-LODED) | Tab, trait tree, spec page, branch |
 | **Sub-specialization** | A spendable path dial under a Specialization (e.g. Seams, Rich Deposits) | Path, node, talent, skill, trait |
-| **Perk** | Milestone bonus tied to ranks on a sub-specialization dial | Trait point, bonus node, rank bonus |
-| **Pip** | Visual dial marker for a perk; **Major pip** = major perk (`isMajorPerk`) | Trait, bonus |
+| **Perk** | Milestone bonus tied to ranks on a sub-specialization dial; **Major perk** = capstone perk (`isMajorPerk`) | Trait point, bonus node, rank bonus |
 | **Knowledge** | Unspent specialization currency for a profession | Points, KP (except where Blizzard uses KP) |
 | **Specializations** (page) | Professions frame tab listing spec trees (`PROFESSIONS_SPECIALIZATIONS_TAB_NAME`) | Spec tab, trait tab |
 | **Specialization index** | PerkLens list/search of specializations, sub-specializations, and perks | Trait index, trait browser |
@@ -56,7 +55,7 @@ The tab **root path** (`tabInfo.rootNodeID`, path layer `Root`) is the unlock/sp
 |------|-----------|---------------------|
 | **Spec tab** | `C_ProfSpecs.GetTabInfo` entry; row `kind = "tab"` | **Specialization** |
 | **Path** | Spend/unlock node (`pathID`); row `kind = "path"` | **Sub-specialization** (any depth) |
-| **Perk** | Dial milestone (`perkID`); row `kind = "perk"` | **Perk** / **pip** |
+| **Perk** | Dial milestone (`perkID`); row `kind = "perk"` | **Perk** |
 | **Path layer** | Tree depth class: `Root`, `Primary`, `Secondary` (Blizzard layout) | Root dial vs first fork vs deeper forks |
 | **Skill line** | `skillLineID` scope for one spec config | **Profession** (spec-enabled line) |
 | **configID** | Trait tree config for a skill line | (not player-visible) |
@@ -72,7 +71,7 @@ The tab **root path** (`tabInfo.rootNodeID`, path layer `Root`) is the unlock/sp
 
 | Player label | Internal | Blizzard state |
 |--------------|----------|----------------|
-| Major pips only | `majorPipsOnly` | `isMajorPerk` |
+| Major perks only | `majorPerksOnly` | `isMajorPerk` |
 | Unearned only | `unearnedOnly` | `ProfessionsSpecPerkState.Unearned`, incomplete paths |
 | Earned | `isEarned` | `ProfessionsSpecPerkState.Earned` |
 | Completed | `isCompleted` | `ProfessionsSpecPathState.Completed` |
@@ -91,13 +90,12 @@ The tab **root path** (`tabInfo.rootNodeID`, path layer `Root`) is the unlock/sp
 > **Domain expert:** "Both. **Searchable text** on a **Path** rolls up perk descriptions, so a **Sub-specialization** can match without its title saying Multicraft. Hits still **promote** ancestor **Specializations** for context."
 > **Dev:** "Player-facing copy for the Professions side tab?"
 > **Domain expert:** "**Specialization index** or **PerkLens** — not 'Trait Index'. The rows already show Blizzard names like **Meticulous Mining** and **Seams**; we don't label them Tab or Path in the UI."
-> **Dev:** "**Major pips only** plus **Unearned only** — still Blizzard-aligned?"
-> **Domain expert:** "Yes. **Pip** matches dial art and sounds; **Unearned** matches `ProfessionsSpecPerkState`."
+> **Dev:** "**Major perks only** plus **Unearned only** — still Blizzard-aligned?"
+> **Domain expert:** "Yes. **Perk** matches `C_ProfSpecs` and `ProfessionsSpecPerkState`; **Unearned** matches `ProfessionsSpecPerkState`."
 
 ## Flagged ambiguities
 
 - **"Specialization" overload** — Blizzard uses `PROFESSIONS_SPECIALIZATION` on path tooltips too (generic type label). In PerkLens **player copy**, reserve **Specialization** for top-level branches (spec tabs) and **Sub-specialization** for path dials. In **internal** discussion, say **path** to avoid collision with the tab level.
 - **"Trait"** — Blizzard `C_Traits` / `TRAIT_*` events only. Do not use **trait** in module names or player-facing strings.
 - **"Tab"** — `C_ProfSpecs` spec tab internally; player sees **Specialization**. Professions frame **Specializations** page is a different "tab" (UI chrome) — say **Specializations page** when meaning `ProfessionsFrame.specializationsTabID`.
-- **Pip vs Perk** — **Perk** in API (`perkID`); **pip** in player filter labels and dial UI (matches Blizzard atlas/sound names).
 - **SpecTraitLens** — legacy addon/db name; not used in new copy.

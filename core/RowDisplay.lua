@@ -28,7 +28,7 @@ end
 function RowDisplay.PerkBadgeParts(row)
 	local parts = {}
 	if row.isMajorPerk then
-		parts[#parts + 1] = "Major pip"
+		parts[#parts + 1] = "Major perk"
 	end
 	if row.unlockRank then
 		parts[#parts + 1] = "Rank " .. row.unlockRank

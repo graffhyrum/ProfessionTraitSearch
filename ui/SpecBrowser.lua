@@ -5,11 +5,22 @@ PL.SpecBrowser = SpecBrowser
 
 local FRAME_WIDTH = 540
 local FRAME_HEIGHT = 660
+local FRAME_MIN_WIDTH = 420
+local FRAME_MIN_HEIGHT = 360
+local FRAME_MAX_WIDTH = 960
+local FRAME_MAX_HEIGHT = 900
+local FILTER_GAP = 7
+local CHECKBOX_GAP = 6
+local SEARCH_LABEL_GAP = 8
+local STANDALONE_SEARCH_WIDTH = 240
 local PADDING_X = 14
 local ROW_GAP = 6
 local INDENT = 18
 local TEXT_GAP = 3
 local CONTENT_WIDTH = 460
+local BADGE_GAP = 8
+local MIN_TEXT_WIDTH = 48
+local SCROLLBAR_GUTTER = 26
 
 local ROW_MIN = { tab = 36, path = 44, perk = 28 }
 local ROW_TINT = {
@@ -135,11 +146,13 @@ local function createRow(parent)
 	f.name = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	f.name:SetPoint("TOPLEFT", PADDING_X, -6)
 	f.name:SetJustifyH("LEFT")
+	f.name:SetWordWrap(true)
 
 	f.detail = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 	f.detail:SetPoint("TOPLEFT", f.name, "BOTTOMLEFT", 0, -TEXT_GAP)
 	f.detail:SetJustifyH("LEFT")
 	f.detail:SetTextColor(0.72, 0.72, 0.72)
+	f.detail:SetWordWrap(true)
 
 	f.badge = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	f.badge:SetPoint("TOPRIGHT", -PADDING_X, -6)
@@ -174,9 +187,23 @@ local function createRow(parent)
 	return f
 end
 
+local function measureBadgeReserve(badgeFontString)
+	local text = badgeFontString:GetText()
+	if not text or text == "" then
+		return 0
+	end
+	return (badgeFontString:GetStringWidth() or 0) + BADGE_GAP
+end
+
+local function scrollContentWidth(scroll)
+	local width = scroll and scroll:GetWidth()
+	if not width or width <= 0 then
+		return CONTENT_WIDTH
+	end
+	return math.max(width - SCROLLBAR_GUTTER - 8, MIN_TEXT_WIDTH + 80)
+end
+
 local function populateRow(rowFrame, row, innerWidth)
-	local badgeWidth = 108
-	local textWidth = math.max(innerWidth - (PADDING_X * 2) - badgeWidth, 120)
 	local r, g, b = stateColor(row)
 	local tint = rowTint(row)
 
@@ -209,6 +236,10 @@ local function populateRow(rowFrame, row, innerWidth)
 			rowFrame.badge:SetTextColor(0.55, 0.78, 1)
 		end
 	end
+
+	local badgeReserve = measureBadgeReserve(rowFrame.badge)
+	local textWidth = innerWidth - (PADDING_X * 2) - badgeReserve
+	textWidth = math.max(MIN_TEXT_WIDTH, textWidth)
 
 	rowFrame.name:SetWidth(textWidth)
 	rowFrame.name:SetText(nameText)
@@ -263,6 +294,73 @@ local function layoutRows(browser)
 	content:SetHeight(math.max(y, 1))
 end
 
+local function layoutRowsWithContentWidth(browser)
+	if browser.scroll then
+		browser.contentWidth = scrollContentWidth(browser.scroll)
+	end
+	layoutRows(browser)
+end
+
+local function checkboxLabelWidth(checkbox)
+	return 24 + (checkbox.text:GetStringWidth() or 0)
+end
+
+local function clampSize(width, height)
+	local w = math.max(FRAME_MIN_WIDTH, math.min(FRAME_MAX_WIDTH, width or FRAME_WIDTH))
+	local h = math.max(FRAME_MIN_HEIGHT, math.min(FRAME_MAX_HEIGHT, height or FRAME_HEIGHT))
+	return w, h
+end
+
+local function saveStandaloneSize(browser)
+	local charDB = PL.Controller:GetCharDB()
+	charDB.standaloneWidth = browser:GetWidth()
+	charDB.standaloneHeight = browser:GetHeight()
+end
+
+local function layoutStandaloneFilters(browser)
+	local frameWidth = browser:GetWidth() or FRAME_WIDTH
+	local search = browser.search
+	local major = browser.major
+	local unearned = browser.unearned
+	local searchLabel = browser.searchLabel
+	local rightInset = 36
+
+	searchLabel:Show()
+	searchLabel:ClearAllPoints()
+	searchLabel:SetPoint("TOPLEFT", 18, -74)
+
+	local labelWidth = searchLabel:GetStringWidth() + 8
+	local filtersWidth = checkboxLabelWidth(major) + CHECKBOX_GAP + checkboxLabelWidth(unearned)
+	local singleRowNeed = 18
+		+ labelWidth
+		+ SEARCH_LABEL_GAP
+		+ STANDALONE_SEARCH_WIDTH
+		+ FILTER_GAP
+		+ filtersWidth
+		+ rightInset
+	local twoRow = frameWidth < singleRowNeed
+	local availableSearch = frameWidth - 18 - rightInset - labelWidth - SEARCH_LABEL_GAP
+	local searchWidth = math.max(120, math.min(STANDALONE_SEARCH_WIDTH, availableSearch))
+
+	search:ClearAllPoints()
+	search:SetSize(searchWidth, 22)
+	search:SetPoint("LEFT", searchLabel, "RIGHT", SEARCH_LABEL_GAP, 0)
+
+	if twoRow then
+		major:ClearAllPoints()
+		major:SetPoint("TOPLEFT", 18, -98)
+		unearned:ClearAllPoints()
+		unearned:SetPoint("LEFT", major.text, "RIGHT", CHECKBOX_GAP, 0)
+		return 122
+	end
+
+	major:ClearAllPoints()
+	major:SetPoint("LEFT", search, "RIGHT", FILTER_GAP, 0)
+	unearned:ClearAllPoints()
+	unearned:SetPoint("LEFT", major.text, "RIGHT", CHECKBOX_GAP, 0)
+	return 98
+end
+
 local function applyChromeLayout(browser)
 	local search = browser.search
 	local major = browser.major
@@ -275,17 +373,20 @@ local function applyChromeLayout(browser)
 		browser.header:Hide()
 		browser.profDropdown:Hide()
 		browser.kpLabel:Hide()
-		browser.searchLabel:Hide()
+
+		browser.searchLabel:Show()
+		browser.searchLabel:ClearAllPoints()
+		browser.searchLabel:SetPoint("TOPLEFT", 12, -32)
 
 		search:ClearAllPoints()
 		search:SetSize(220, 22)
-		search:SetPoint("TOPLEFT", 72, -32)
+		search:SetPoint("LEFT", browser.searchLabel, "RIGHT", SEARCH_LABEL_GAP, 0)
 
 		major:ClearAllPoints()
-		major:SetPoint("LEFT", search, "RIGHT", 14, 0)
+		major:SetPoint("LEFT", search, "RIGHT", FILTER_GAP, 0)
 
 		unearned:ClearAllPoints()
-		unearned:SetPoint("LEFT", major.text, "RIGHT", 12, 0)
+		unearned:SetPoint("LEFT", major.text, "RIGHT", CHECKBOX_GAP, 0)
 
 		divider:ClearAllPoints()
 		divider:SetPoint("TOPLEFT", 12, -64)
@@ -303,30 +404,21 @@ local function applyChromeLayout(browser)
 	end
 
 	browser.kpLabel:Show()
-	browser.searchLabel:Hide()
 
-	search:ClearAllPoints()
-	search:SetSize(240, 22)
-	search:SetPoint("TOPLEFT", 18, -74)
-
-	major:ClearAllPoints()
-	major:SetPoint("LEFT", search, "RIGHT", 14, 0)
-
-	unearned:ClearAllPoints()
-	unearned:SetPoint("LEFT", major.text, "RIGHT", 12, 0)
+	local filterBottom = layoutStandaloneFilters(browser)
 
 	divider:ClearAllPoints()
-	divider:SetPoint("TOPLEFT", 12, -62)
-	divider:SetPoint("TOPRIGHT", -12, -62)
+	divider:SetPoint("TOPLEFT", 12, -(filterBottom + 2))
+	divider:SetPoint("TOPRIGHT", -12, -(filterBottom + 2))
 	divider:SetHeight(1)
 
 	scrollBg:ClearAllPoints()
-	scrollBg:SetPoint("TOPLEFT", 10, -100)
-	scrollBg:SetPoint("BOTTOMRIGHT", -10, 10)
+	scrollBg:SetPoint("TOPLEFT", 10, -(filterBottom + 6))
+	scrollBg:SetPoint("BOTTOMRIGHT", -10, 36)
 
 	scroll:ClearAllPoints()
-	scroll:SetPoint("TOPLEFT", 14, -104)
-	scroll:SetPoint("BOTTOMRIGHT", -30, 14)
+	scroll:SetPoint("TOPLEFT", 14, -(filterBottom + 10))
+	scroll:SetPoint("BOTTOMRIGHT", -30, 40)
 end
 
 local function buildChrome(browser)
@@ -375,8 +467,8 @@ local function buildChrome(browser)
 	browser.searchLabel = searchLabel
 
 	local search = CreateFrame("EditBox", nil, browser, "InputBoxTemplate")
-	search:SetSize(240, 22)
-	search:SetPoint("TOPLEFT", 18, -90)
+	search:SetSize(STANDALONE_SEARCH_WIDTH, 22)
+	search:SetPoint("LEFT", searchLabel, "RIGHT", SEARCH_LABEL_GAP, 0)
 	search:SetAutoFocus(false)
 	search:SetScript("OnTextChanged", function(self)
 		PL.Controller:SetSearchText(self:GetText())
@@ -387,17 +479,17 @@ local function buildChrome(browser)
 	browser.search = search
 
 	local major = CreateFrame("CheckButton", nil, browser, "UICheckButtonTemplate")
-	major:SetPoint("LEFT", search, "RIGHT", 14, 0)
+	major:SetPoint("LEFT", search, "RIGHT", FILTER_GAP, 0)
 	major.text = major:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 	major.text:SetPoint("LEFT", major, "RIGHT", 0, 0)
-	major.text:SetText("Major pips only")
+	major.text:SetText("Major perks only")
 	major:SetScript("OnClick", function(self)
-		PL.Controller:SetMajorPipsOnly(self:GetChecked())
+		PL.Controller:SetMajorPerksOnly(self:GetChecked())
 	end)
 	browser.major = major
 
 	local unearned = CreateFrame("CheckButton", nil, browser, "UICheckButtonTemplate")
-	unearned:SetPoint("LEFT", major.text, "RIGHT", 12, 0)
+	unearned:SetPoint("LEFT", major.text, "RIGHT", CHECKBOX_GAP, 0)
 	unearned.text = unearned:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 	unearned.text:SetPoint("LEFT", unearned, "RIGHT", 0, 0)
 	unearned.text:SetText("Unearned only")
@@ -444,23 +536,38 @@ function SpecBrowser:Update(browser)
 		local kp = PL.Controller:GetKnowledgeAvailable()
 		browser.kpLabel:Show()
 		if ctx then
-			browser.kpLabel:SetText("Knowledge: " .. kp)
+			browser.kpLabel:SetText("Knowledge available: " .. kp)
 		else
 			browser.kpLabel:SetText("")
 		end
 	end
 	browser.search:SetText(PL.Controller:GetSearchText())
-	browser.major:SetChecked(PL.Controller:GetMajorPipsOnly())
+	browser.major:SetChecked(PL.Controller:GetMajorPerksOnly())
 	browser.unearned:SetChecked(PL.Controller:GetUnearnedOnly())
 
-	if browser.scroll then
-		local scrollWidth = browser.scroll:GetWidth()
-		if scrollWidth and scrollWidth > 0 then
-			browser.contentWidth = scrollWidth - 8
-		end
+	layoutRowsWithContentWidth(browser)
+end
+
+local function attachStandaloneSizer(browser)
+	if browser.sizer then
+		return
 	end
 
-	layoutRows(browser)
+	browser:SetResizable(true)
+	local sizer = CreateFrame("Button", nil, browser)
+	sizer:SetSize(16, 16)
+	sizer:SetPoint("BOTTOMRIGHT", -10, 10)
+	sizer:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+	sizer:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+	sizer:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+	sizer:SetScript("OnMouseDown", function()
+		browser:StartSizing("BOTTOMRIGHT")
+	end)
+	sizer:SetScript("OnMouseUp", function()
+		browser:StopMovingOrSizing()
+		saveStandaloneSize(browser)
+	end)
+	browser.sizer = sizer
 end
 
 function SpecBrowser:CreateStandalone()
@@ -468,7 +575,9 @@ function SpecBrowser:CreateStandalone()
 		return self.standalone
 	end
 	local f = CreateFrame("Frame", "PerkLensBrowser", UIParent, "BackdropTemplate")
-	f:SetSize(FRAME_WIDTH, FRAME_HEIGHT)
+	local charDB = PL.Controller:GetCharDB()
+	local initialWidth, initialHeight = clampSize(charDB.standaloneWidth, charDB.standaloneHeight)
+	f:SetSize(initialWidth, initialHeight)
 	f:SetPoint("CENTER")
 	f:SetBackdrop({
 		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
@@ -485,7 +594,18 @@ function SpecBrowser:CreateStandalone()
 	f:RegisterForDrag("LeftButton")
 	f:SetScript("OnDragStart", f.StartMoving)
 	f:SetScript("OnDragStop", f.StopMovingOrSizing)
+	f:SetScript("OnSizeChanged", function(self, width, height)
+		local w, h = clampSize(width, height)
+		if w ~= width or h ~= height then
+			self:SetSize(w, h)
+			return
+		end
+		if self:IsShown() then
+			SpecBrowser:Update(self)
+		end
+	end)
 	tinsert(UISpecialFrames, f:GetName())
+	attachStandaloneSizer(f)
 	f:SetScript("OnShow", function()
 		PL.Controller:SetViewMode("standalone")
 		PL.Controller:SetListening(true)

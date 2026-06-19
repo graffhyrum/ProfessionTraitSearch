@@ -49,9 +49,9 @@ describe("SpecSearch", function()
 		assert.is_true(#filtered >= 2)
 	end)
 
-	it("filters major pips with ancestor promotion", function()
+	it("filters major perks with ancestor promotion", function()
 		local pl = load_addon.pl()
-		local filtered = pl.SpecSearch.Filter(allRows(), { majorPipsOnly = true })
+		local filtered = pl.SpecSearch.Filter(allRows(), { majorPerksOnly = true })
 		local perks = 0
 		for i = 1, #filtered do
 			if filtered[i].kind == "perk" then

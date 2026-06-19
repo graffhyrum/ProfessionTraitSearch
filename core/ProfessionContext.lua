@@ -66,6 +66,23 @@ function ProfessionContext.GetContextForSkillLine(skillLineID)
 	}
 end
 
+local function compareSpecSkillLines(a, b)
+	local aSource = a.sourceCounter or 0
+	local bSource = b.sourceCounter or 0
+	if aSource > 0 and bSource > 0 and aSource ~= bSource then
+		return aSource > bSource
+	end
+	local aIndex = a.listIndex or 0
+	local bIndex = b.listIndex or 0
+	if aIndex ~= bIndex then
+		return aIndex > bIndex
+	end
+	if a.skillLineID ~= b.skillLineID then
+		return a.skillLineID > b.skillLineID
+	end
+	return (a.professionName or "") < (b.professionName or "")
+end
+
 function ProfessionContext.GetActiveContext()
 	local skillLineID
 	if ProfessionsFrame and ProfessionsFrame.GetProfessionInfo then
@@ -85,20 +102,17 @@ function ProfessionContext.ListSpecSkillLines()
 	if not C_TradeSkillUI or not C_TradeSkillUI.GetAllProfessionTradeSkillLines then
 		return out
 	end
-	for _, skillLine in ipairs(C_TradeSkillUI.GetAllProfessionTradeSkillLines()) do
+	local skillLines = C_TradeSkillUI.GetAllProfessionTradeSkillLines()
+	for i, skillLine in ipairs(skillLines) do
 		if ProfessionContext.IsTrainedSkillLine(skillLine) then
 			local ctx = ProfessionContext.GetContextForSkillLine(skillLine)
 			if ctx then
+				ctx.listIndex = i
 				out[#out + 1] = ctx
 			end
 		end
 	end
-	table.sort(out, function(a, b)
-		if a.sourceCounter ~= b.sourceCounter then
-			return a.sourceCounter > b.sourceCounter
-		end
-		return (a.professionName or "") < (b.professionName or "")
-	end)
+	table.sort(out, compareSpecSkillLines)
 	return out
 end
 

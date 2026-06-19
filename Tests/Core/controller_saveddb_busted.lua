@@ -24,4 +24,13 @@ describe("Controller saved DB", function()
 		assert.are.equal(_G.PerkLensDB, db)
 		assert.is_true(db.minimap.hide)
 	end)
+	it("migrates majorPipsOnly to majorPerksOnly", function()
+		_G.UnitGUID = function() return "test-guid" end
+		_G.PerkLensDB = { char = { ["test-guid"] = { majorPipsOnly = true } } }
+		local pl = load_addon.pl()
+		local charDB = pl.Controller:GetCharDB()
+		assert.is_true(charDB.majorPerksOnly)
+		assert.is_nil(charDB.majorPipsOnly)
+	end)
+
 end)
