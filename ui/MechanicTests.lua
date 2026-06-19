@@ -1,7 +1,7 @@
-local STL = _G.SpecTraitLens
+local PL = _G.PerkLens
 
 local MechanicTests = {}
-STL.MechanicTests = MechanicTests
+PL.MechanicTests = MechanicTests
 
 local tests = {
 	{
@@ -13,10 +13,10 @@ local tests = {
 	},
 	{
 		id = "index_builds",
-		name = "Trait index builds",
+		name = "Specialization index builds",
 		category = "Core",
 		type = "auto",
-		description = "Build trait rows for the active context.",
+		description = "Build specialization index rows for the active context.",
 	},
 }
 
@@ -26,7 +26,7 @@ end
 
 function MechanicTests:GetResult(id)
 	if id == "context_available" then
-		local ctx = STL.ProfessionContext.GetActiveContext()
+		local ctx = PL.ProfessionContext.GetActiveContext()
 		local ok = ctx ~= nil and ctx.configID ~= nil
 		return {
 			passed = ok,
@@ -34,11 +34,11 @@ function MechanicTests:GetResult(id)
 		}
 	end
 	if id == "index_builds" then
-		local ctx = STL.ProfessionContext.GetActiveContext()
+		local ctx = PL.ProfessionContext.GetActiveContext()
 		if not ctx then
 			return { passed = false, message = "No context" }
 		end
-		local rows = STL.TraitIndex.Build(ctx)
+		local rows = PL.SpecIndex.Build(ctx)
 		local ok = #rows > 0
 		return {
 			passed = ok,
@@ -56,9 +56,9 @@ local MechanicLib = LibStub and LibStub("MechanicLib-1.0", true)
 if MechanicLib then
 	local version = "0.1.0"
 	if C_AddOns and C_AddOns.GetAddOnMetadata then
-		version = C_AddOns.GetAddOnMetadata("SpecTraitLens", "Version") or version
+		version = C_AddOns.GetAddOnMetadata("PerkLens", "Version") or version
 	end
-	MechanicLib:Register("SpecTraitLens", {
+	MechanicLib:Register("PerkLens", {
 		version = version,
 		tests = {
 			getAll = function()

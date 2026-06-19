@@ -1,6 +1,6 @@
 local addonName = ...
-local STL = _G.SpecTraitLens
-if not STL or not STL.Controller or not STL.TraitBrowser then
+local PL = _G.PerkLens
+if not PL or not PL.Controller or not PL.SpecBrowser then
 	return
 end
 
@@ -10,8 +10,8 @@ frame:SetScript("OnEvent", function(_, event, name)
 	if event ~= "ADDON_LOADED" or name ~= addonName then
 		return
 	end
-	STL.Controller:ApplyFromSaved()
-	STL.MinimapButton:Init()
-	STL.Slash:Init()
-	STL.ProfessionsHook:Init()
+	PL.Controller:ApplyFromSaved()
+	PL.MinimapButton:Init()
+	PL.Slash:Init()
+	PL.ProfessionsHook:Init()
 end)

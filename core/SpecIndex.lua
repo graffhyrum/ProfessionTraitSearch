@@ -1,7 +1,7 @@
-local STL = _G.SpecTraitLens
+local PL = _G.PerkLens
 
-local TraitIndex = {}
-STL.TraitIndex = TraitIndex
+local SpecIndex = {}
+PL.SpecIndex = SpecIndex
 
 local PATH_COMPLETED = Enum and Enum.ProfessionsSpecPathState and Enum.ProfessionsSpecPathState.Completed or 3
 local PERK_EARNED = Enum and Enum.ProfessionsSpecPerkState and Enum.ProfessionsSpecPerkState.Earned or 3
@@ -24,10 +24,10 @@ local function pathName(configID, pathID, description, nodeInfo)
 		local entryInfo = spendEntry and C_Traits.GetEntryInfo(configID, spendEntry)
 		local defInfo = entryInfo and entryInfo.definitionID and C_Traits.GetDefinitionInfo(entryInfo.definitionID)
 		if defInfo then
-			return TalentUtil.GetTalentName(defInfo.overrideName, defInfo.spellID) or "Path"
+			return TalentUtil.GetTalentName(defInfo.overrideName, defInfo.spellID) or ""
 		end
 	end
-	return "Path"
+	return ""
 end
 
 local function walkPath(rows, configID, pathID, tabName, depth, parentPathID)
@@ -65,7 +65,7 @@ local function walkPath(rows, configID, pathID, tabName, depth, parentPathID)
 		searchableText = searchableText .. "\n" .. table.concat(perkDescParts, "\n")
 	end
 
-	local currRank, maxRanks = STL.RankUtil.GetDisplayRanks(configID, pathID, nodeInfo)
+	local currRank, maxRanks = PL.RankUtil.GetDisplayRanks(configID, pathID, nodeInfo)
 	local pathState = C_ProfSpecs.GetStateForPath(pathID, configID)
 
 	rows[#rows + 1] = {
@@ -94,7 +94,7 @@ local function walkPath(rows, configID, pathID, tabName, depth, parentPathID)
 	end
 end
 
-function TraitIndex.Build(context)
+function SpecIndex.Build(context)
 	if not context or not context.configID or not context.skillLineID then
 		return {}
 	end

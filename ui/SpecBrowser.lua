@@ -1,7 +1,7 @@
-local STL = _G.SpecTraitLens
+local PL = _G.PerkLens
 
-local TraitBrowser = {}
-STL.TraitBrowser = TraitBrowser
+local SpecBrowser = {}
+PL.SpecBrowser = SpecBrowser
 
 local FRAME_WIDTH = 540
 local FRAME_HEIGHT = 660
@@ -24,23 +24,23 @@ local function initProfessionDropdown(_, level)
 	if level ~= 1 then
 		return
 	end
-	local ctx = STL.Controller:GetContext()
+	local ctx = PL.Controller:GetContext()
 	local currentID = ctx and ctx.skillLineID
-	for _, prof in ipairs(STL.Controller:ListProfessions()) do
+	for _, prof in ipairs(PL.Controller:ListProfessions()) do
 		local info = UIDropDownMenu_CreateInfo()
 		info.text = prof.professionName
 		info.value = prof.skillLineID
 		info.checked = prof.skillLineID == currentID
 		info.func = function()
-			STL.Controller:SetSkillLine(prof.skillLineID)
+			PL.Controller:SetSkillLine(prof.skillLineID)
 		end
 		UIDropDownMenu_AddButton(info)
 	end
 end
 
 local function refreshProfessionSelector(browser)
-	local professions = STL.Controller:ListProfessions()
-	local ctx = STL.Controller:GetContext()
+	local professions = PL.Controller:ListProfessions()
+	local ctx = PL.Controller:GetContext()
 
 	if #professions <= 1 then
 		browser.profDropdown:Hide()
@@ -117,20 +117,6 @@ local function stateColor(row)
 	return 1, 1, 1
 end
 
-local function perkBadges(row)
-	local parts = {}
-	if row.isMajorPerk then
-		parts[#parts + 1] = "Major"
-	end
-	if row.unlockRank then
-		parts[#parts + 1] = "Rank " .. row.unlockRank
-	end
-	if row.isEarned then
-		parts[#parts + 1] = "Earned"
-	end
-	return table.concat(parts, " · ")
-end
-
 local function createRow(parent)
 	local f = CreateFrame("Frame", nil, parent)
 
@@ -165,26 +151,23 @@ local function populateRow(rowFrame, row, innerWidth)
 	rowFrame.name:SetTextColor(r, g, b)
 	rowFrame.badge:SetText("")
 
-	local nameText = ""
+	local nameText = PL.RowDisplay.DisplayName(row)
 	local detailText = nil
 	local minH = ROW_MIN[row.kind] or ROW_MIN.perk
 
 	if row.kind == "tab" then
 		rowFrame.name:SetFontObject("GameFontNormalLarge")
-		nameText = row.name or ""
 		detailText = detailAfterTitle(nameText, row.description)
 	elseif row.kind == "path" then
 		rowFrame.name:SetFontObject("GameFontHighlight")
-		nameText = row.name or "Path"
 		detailText = detailAfterTitle(nameText, row.description)
 		if row.maxRanks and row.maxRanks > 0 then
 			rowFrame.badge:SetText(string.format("%d / %d", row.currentRank or 0, row.maxRanks))
 		end
 	else
 		rowFrame.name:SetFontObject("GameFontHighlightSmall")
-		nameText = row.name or "Perk"
 		detailText = detailAfterTitle(nameText, row.description)
-		rowFrame.badge:SetText(perkBadges(row))
+		rowFrame.badge:SetText(PL.RowDisplay.PerkBadgeText(row))
 		if row.isEarned then
 			rowFrame.badge:SetTextColor(0.45, 1, 0.45)
 		elseif row.isMajorPerk then
@@ -209,7 +192,7 @@ local function populateRow(rowFrame, row, innerWidth)
 end
 
 local function layoutRows(browser)
-	local rows = STL.Controller:GetVisibleRows()
+	local rows = PL.Controller:GetVisibleRows()
 	local content = browser.content
 	local innerWidth = browser.contentWidth or CONTENT_WIDTH
 	local y = 4
@@ -294,7 +277,7 @@ local function buildChrome(browser)
 	search:SetPoint("TOPLEFT", 18, -90)
 	search:SetAutoFocus(false)
 	search:SetScript("OnTextChanged", function(self)
-		STL.Controller:SetSearchText(self:GetText())
+		PL.Controller:SetSearchText(self:GetText())
 	end)
 	search:SetScript("OnEscapePressed", function(self)
 		self:ClearFocus()
@@ -307,7 +290,7 @@ local function buildChrome(browser)
 	major.text:SetPoint("LEFT", major, "RIGHT", 0, 0)
 	major.text:SetText("Major pips only")
 	major:SetScript("OnClick", function(self)
-		STL.Controller:SetMajorPipsOnly(self:GetChecked())
+		PL.Controller:SetMajorPipsOnly(self:GetChecked())
 	end)
 	browser.major = major
 
@@ -317,7 +300,7 @@ local function buildChrome(browser)
 	unearned.text:SetPoint("LEFT", unearned, "RIGHT", 0, 0)
 	unearned.text:SetText("Unearned only")
 	unearned:SetScript("OnClick", function(self)
-		STL.Controller:SetUnearnedOnly(self:GetChecked())
+		PL.Controller:SetUnearnedOnly(self:GetChecked())
 	end)
 	browser.unearned = unearned
 
@@ -339,26 +322,26 @@ local function buildChrome(browser)
 	browser.contentWidth = CONTENT_WIDTH
 	browser.pool = {}
 
-	STL.Controller.RegisterCallback(function()
+	PL.Controller.RegisterCallback(function()
 		if browser:IsShown() then
-			TraitBrowser:Update(browser)
+			SpecBrowser:Update(browser)
 		end
 	end)
 end
 
-function TraitBrowser:Update(browser)
+function SpecBrowser:Update(browser)
 	buildChrome(browser)
-	local ctx = STL.Controller:GetContext()
-	local kp = STL.Controller:GetKnowledgeAvailable()
+	local ctx = PL.Controller:GetContext()
+	local kp = PL.Controller:GetKnowledgeAvailable()
 	refreshProfessionSelector(browser)
 	if ctx then
 		browser.kpLabel:SetText("Knowledge: " .. kp)
 	else
 		browser.kpLabel:SetText("")
 	end
-	browser.search:SetText(STL.Controller:GetSearchText())
-	browser.major:SetChecked(STL.Controller:GetMajorPipsOnly())
-	browser.unearned:SetChecked(STL.Controller:GetUnearnedOnly())
+	browser.search:SetText(PL.Controller:GetSearchText())
+	browser.major:SetChecked(PL.Controller:GetMajorPipsOnly())
+	browser.unearned:SetChecked(PL.Controller:GetUnearnedOnly())
 
 	if browser.scroll then
 		local scrollWidth = browser.scroll:GetWidth()
@@ -370,11 +353,11 @@ function TraitBrowser:Update(browser)
 	layoutRows(browser)
 end
 
-function TraitBrowser:CreateStandalone()
+function SpecBrowser:CreateStandalone()
 	if self.standalone then
 		return self.standalone
 	end
-	local f = CreateFrame("Frame", "SpecTraitLensBrowser", UIParent, "BackdropTemplate")
+	local f = CreateFrame("Frame", "PerkLensBrowser", UIParent, "BackdropTemplate")
 	f:SetSize(FRAME_WIDTH, FRAME_HEIGHT)
 	f:SetPoint("CENTER")
 	f:SetBackdrop({
@@ -393,12 +376,12 @@ function TraitBrowser:CreateStandalone()
 	f:SetScript("OnDragStart", f.StartMoving)
 	f:SetScript("OnDragStop", f.StopMovingOrSizing)
 	f:SetScript("OnShow", function()
-		STL.Controller:SetListening(true)
-		STL.Controller:Refresh()
-		TraitBrowser:Update(f)
+		PL.Controller:SetListening(true)
+		PL.Controller:Refresh()
+		SpecBrowser:Update(f)
 	end)
 	f:SetScript("OnHide", function()
-		STL.Controller:SetListening(false)
+		PL.Controller:SetListening(false)
 	end)
 
 	local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
@@ -409,7 +392,7 @@ function TraitBrowser:CreateStandalone()
 	return f
 end
 
-function TraitBrowser:CreateEmbedded(parent)
+function SpecBrowser:CreateEmbedded(parent)
 	if self.embedded then
 		return self.embedded
 	end
@@ -417,13 +400,13 @@ function TraitBrowser:CreateEmbedded(parent)
 	f:SetAllPoints(parent)
 	f:Hide()
 	f:SetScript("OnShow", function()
-		STL.Controller:SetListening(true)
-		STL.Controller:Refresh()
-		TraitBrowser:Update(f)
+		PL.Controller:SetListening(true)
+		PL.Controller:Refresh()
+		SpecBrowser:Update(f)
 	end)
 	f:SetScript("OnHide", function()
 		if not (self.standalone and self.standalone:IsShown()) then
-			STL.Controller:SetListening(false)
+			PL.Controller:SetListening(false)
 		end
 	end)
 	self.embedded = f
@@ -431,7 +414,7 @@ function TraitBrowser:CreateEmbedded(parent)
 	return f
 end
 
-function TraitBrowser:ToggleStandalone()
+function SpecBrowser:ToggleStandalone()
 	local f = self:CreateStandalone()
 	if f:IsShown() then
 		f:Hide()
@@ -441,22 +424,22 @@ function TraitBrowser:ToggleStandalone()
 	end
 end
 
-function TraitBrowser:ShowStandalone(searchText)
+function SpecBrowser:ShowStandalone(searchText)
 	local f = self:CreateStandalone()
 	if searchText then
-		STL.Controller:SetSearchText(searchText)
+		PL.Controller:SetSearchText(searchText)
 	end
 	self:Update(f)
 	f:Show()
 end
 
-function TraitBrowser:HideStandalone()
+function SpecBrowser:HideStandalone()
 	if self.standalone then
 		self.standalone:Hide()
 	end
 end
 
-function TraitBrowser:SetEmbeddedVisible(visible)
+function SpecBrowser:SetEmbeddedVisible(visible)
 	local embedded = self.embedded
 	if not embedded then
 		return

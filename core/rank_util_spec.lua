@@ -1,4 +1,4 @@
-local STL = _G.SpecTraitLens
+local PL = _G.PerkLens
 
 describe("RankUtil (sandbox)", function()
 	it("subtracts unlock rank from display ranks", function()
@@ -13,7 +13,7 @@ describe("RankUtil (sandbox)", function()
 			end,
 		}
 		local nodeInfo = { currentRank = 3, maxRanks = 5 }
-		local curr, max = STL.RankUtil.GetDisplayRanks(101, 301, nodeInfo)
+		local curr, max = PL.RankUtil.GetDisplayRanks(101, 301, nodeInfo)
 		assert.equals(2, curr)
 		assert.equals(4, max)
 	end)

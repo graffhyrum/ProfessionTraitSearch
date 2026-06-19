@@ -1,7 +1,7 @@
-local STL = _G.SpecTraitLens
+local PL = _G.PerkLens
 
 local Debounce = {}
-STL.Debounce = Debounce
+PL.Debounce = Debounce
 
 local pending = {}
 

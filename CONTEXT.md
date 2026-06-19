@@ -1,37 +1,42 @@
-# Spec Trait Lens
+# PerkLens
 
-WoW **retail** addon: searchable index of profession specialization paths and perks.
+WoW **retail** addon: searchable **specialization index** for profession spec trees.
 
-## Language
+Full glossary and player/internal naming rules: **`UBIQUITOUS_LANGUAGE.md`**.
 
-**Path**:
-A specialization tree node (the dial-center node in Blizzard's UI). Identified by `pathID` via `C_ProfSpecs`.
-_Avoid_: node, talent, skill
+## Language (quick reference)
+
+**Specialization** (player) / **spec tab** (internal):
+Top-level branch (e.g. Plentiful Ores, Meticulous Mining, Over-LODED). `C_ProfSpecs.GetTabInfo`; row `kind = "tab"`.
+_Avoid in UI_: tab, trait tree
+
+**Sub-specialization** (player) / **path** (internal):
+Spendable dial under a specialization (e.g. Seams, Rich Deposits). `pathID` via `C_ProfSpecs`; row `kind = "path"`.
+_Avoid in UI_: path, node, talent, trait
 
 **Perk / pip**:
-A milestone bonus on a path's rank dial. `isMajorPerk` marks a major pip.
-_Avoid_: trait point, bonus node
+Milestone on a sub-specialization rank dial. `isMajorPerk` → major pip.
+_Avoid in UI_: trait point, rank bonus
 
-**Tab**:
-A specialization branch (e.g. "Over-LODED", "Plentiful Ores"). From `C_ProfSpecs.GetTabInfo`.
-_Avoid_: spec tree, specialization page
+**Specialization index** (player) / **spec index** (internal):
+Flat list from `C_ProfSpecs` + `C_Traits` via `SpecIndex.Build`.
+_Avoid in UI_: trait index, trait browser
 
-**Trait index**:
-Flat list derived live from `C_ProfSpecs` + `C_Traits` for one profession skill line.
-_Avoid_: database, cache file
+**RowDisplay**:
+UI seam — `DisplayName` and `PerkBadgeText` map row kinds to player-facing labels.
 
 **Searchable text**:
-For paths: path description plus all perk descriptions on that path concatenated. Enables keyword search without expanding rows.
-_Avoid_: search index, full text
+Path description plus perk descriptions on that path — powers keyword search.
+_Avoid_: search index
 
 **Knowledge**:
-Unspent specialization currency from `C_ProfSpecs.GetCurrencyInfoForSkillLine`.
-_Avoid_: points, KP (unless user-facing shorthand in UI)
+Unspent spec currency from `C_ProfSpecs.GetCurrencyInfoForSkillLine`.
+_Avoid in UI_: points (unless Blizzard does)
 
 ## Example dialogue
 
 > "Search for Multicraft in Midnight Mining specs."
-> → Open `/stl` or Trait Index in Professions; type `Multicraft`; matching paths and perks appear with parent context.
+> → Open `/pl` or the **Specialization index** on the Professions **Specializations** page; type `Multicraft`; matching sub-specializations and perks appear with parent context.
 
 > "Show only major pips I haven't earned yet."
-> → Enable Major pips only + Unearned only filters.
+> → Enable **Major pips only** + **Unearned only**.

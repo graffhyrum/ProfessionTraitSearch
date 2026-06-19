@@ -5,7 +5,7 @@ local M = {}
 local loaded = {}
 
 local function root()
-	return os.getenv("STL_ROOT") or "."
+	return os.getenv("PL_ROOT") or "."
 end
 
 local function loadfile_at(path)
@@ -20,7 +20,7 @@ function M.reset()
 	wow_api.reset()
 	wow_api.install()
 	loaded = {}
-	_G.SpecTraitLens = nil
+	_G.PerkLens = nil
 	for key in pairs(package.loaded) do
 		if key:match("^core/") or key:match("^ui/") or key:match("^Tests%.") then
 			package.loaded[key] = nil
@@ -43,13 +43,14 @@ function M.load_core()
 	M.load("core/Debounce.lua")
 	M.load("core/ProfessionContext.lua")
 	M.load("core/RankUtil.lua")
-	M.load("core/TraitIndex.lua")
-	M.load("core/TraitSearch.lua")
-	M.load("core/Controller.lua", "SpecTraitLens")
+	M.load("core/RowDisplay.lua")
+	M.load("core/SpecIndex.lua")
+	M.load("core/SpecSearch.lua")
+	M.load("core/Controller.lua", "PerkLens")
 end
 
-function M.stl()
-	return _G.SpecTraitLens
+function M.pl()
+	return _G.PerkLens
 end
 
 return M

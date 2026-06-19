@@ -1,10 +1,10 @@
 local addonName = ...
-local STL = _G.SpecTraitLens or {}
-_G.SpecTraitLens = STL
+local PL = _G.PerkLens or {}
+_G.PerkLens = PL
 
 local Controller = {}
-STL.Controller = Controller
-STL.ADDON_NAME = addonName
+PL.Controller = Controller
+PL.ADDON_NAME = addonName
 
 local context
 local allRows = {}
@@ -26,9 +26,16 @@ local function charKey()
 	return UnitGUID("player") or (UnitName("player") .. "-" .. (GetRealmName() or ""))
 end
 
+local function ensureSavedDB()
+	if SpecTraitLensDB and not PerkLensDB then
+		PerkLensDB = SpecTraitLensDB
+	end
+	PerkLensDB = PerkLensDB or {}
+	return PerkLensDB
+end
+
 function Controller:GetCharDB()
-	SpecTraitLensDB = SpecTraitLensDB or {}
-	local db = SpecTraitLensDB
+	local db = ensureSavedDB()
 	db.char = db.char or {}
 	db.char[charKey()] = db.char[charKey()] or {
 		searchText = "",
@@ -97,29 +104,29 @@ end
 function Controller:RebuildIndex()
 	local charDB = self:GetCharDB()
 	if charDB.lastSkillLineID then
-		context = STL.ProfessionContext.GetContextForSkillLine(charDB.lastSkillLineID)
+		context = PL.ProfessionContext.GetContextForSkillLine(charDB.lastSkillLineID)
 	end
 	if not context then
-		context = STL.ProfessionContext.GetActiveContext()
+		context = PL.ProfessionContext.GetActiveContext()
 	end
 	if not context then
-		local list = STL.ProfessionContext.ListSpecSkillLines()
+		local list = PL.ProfessionContext.ListSpecSkillLines()
 		context = list[1]
 	end
 	if context then
 		charDB.lastSkillLineID = context.skillLineID
 	end
-	allRows = context and STL.TraitIndex.Build(context) or {}
-	visibleRows = STL.TraitSearch.Filter(allRows, filterOptions())
+	allRows = context and PL.SpecIndex.Build(context) or {}
+	visibleRows = PL.SpecSearch.Filter(allRows, filterOptions())
 	indexDirty = false
 end
 
 function Controller:Refresh()
-	STL.Debounce.After("index", function()
+	PL.Debounce.After("index", function()
 		if indexDirty then
 			Controller:RebuildIndex()
 		else
-			visibleRows = STL.TraitSearch.Filter(allRows, filterOptions())
+			visibleRows = PL.SpecSearch.Filter(allRows, filterOptions())
 		end
 		fireCallbacks()
 	end)
@@ -144,7 +151,7 @@ function Controller:GetKnowledgeAvailable()
 	if not ctx then
 		return 0
 	end
-	return STL.ProfessionContext.GetKnowledgeAvailable(ctx.skillLineID)
+	return PL.ProfessionContext.GetKnowledgeAvailable(ctx.skillLineID)
 end
 
 function Controller:SetSearchText(text)
@@ -182,7 +189,7 @@ function Controller:SetSkillLine(skillLineID)
 end
 
 function Controller:ListProfessions()
-	return STL.ProfessionContext.ListSpecSkillLines()
+	return PL.ProfessionContext.ListSpecSkillLines()
 end
 
 function Controller:ApplyFromSaved()

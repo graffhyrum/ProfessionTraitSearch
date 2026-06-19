@@ -1,13 +1,15 @@
-# Spec Trait Lens
+# PerkLens
 
-Searchable profession specialization trait browser for WoW retail.
+Searchable profession specialization index for WoW retail.
+
+Domain terms: see [UBIQUITOUS_LANGUAGE.md](UBIQUITOUS_LANGUAGE.md) (player-facing vs internal naming).
 
 ## Features
 
-- Tree list of specialization tabs, paths, and perks with descriptions visible at once
+- Tree list of specializations, sub-specializations, and perks with descriptions visible at once
 - Text search (e.g. find Multicraft)
 - Filters: major pips only, unearned only
-- Standalone panel (`/stl`) and embedded toggle in Professions specialization tab
+- Standalone panel (`/pl`) and embedded toggle on the Professions Specializations page
 
 ## Development
 

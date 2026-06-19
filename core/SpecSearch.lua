@@ -1,7 +1,7 @@
-local STL = _G.SpecTraitLens
+local PL = _G.PerkLens
 
-local TraitSearch = {}
-STL.TraitSearch = TraitSearch
+local SpecSearch = {}
+PL.SpecSearch = SpecSearch
 
 local function lower(s)
 	return (s or ""):lower()
@@ -73,7 +73,7 @@ local function promoteAncestors(rows, visible, rowIndex)
 	end
 end
 
-function TraitSearch.Filter(rows, options)
+function SpecSearch.Filter(rows, options)
 	options = options or {}
 	local query = lower(options.searchText)
 	local majorOnly = options.majorPipsOnly == true

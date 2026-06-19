@@ -1,15 +1,15 @@
-# Spec Trait Lens — dev workflows (Mechanic + Changesets)
+# PerkLens — dev workflows (Mechanic + Changesets)
 # Run `just --list` for all recipes.
 
 set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
-addon := "SpecTraitLens"
+addon := "PerkLens"
 root := justfile_directory()
 root_json := replace(root, "\\", "/")
 mech_json := '{\""addon\"":\""' + addon + '\""}'
 mech_json_coverage := '{\""addon\"":\""' + addon + '\"",\""coverage\"":true}'
 
-export STL_ROOT := root_json
+export PL_ROOT := root_json
 
 default:
     @just --list

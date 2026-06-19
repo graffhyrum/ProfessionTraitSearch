@@ -1,7 +1,7 @@
-local STL = _G.SpecTraitLens
+local PL = _G.PerkLens
 
 local RankUtil = {}
-STL.RankUtil = RankUtil
+PL.RankUtil = RankUtil
 
 function RankUtil.GetDisplayRanks(configID, nodeID, nodeInfo)
 	if not nodeInfo then

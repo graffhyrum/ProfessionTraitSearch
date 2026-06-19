@@ -47,7 +47,7 @@ jobs:
       - name: Configure Mechanic paths
         run: |
           PARENT="$(dirname "${{ github.workspace }}")"
-          ln -sfn "${{ github.workspace }}" "$PARENT/SpecTraitLens"
+          ln -sfn "${{ github.workspace }}" "$PARENT/PerkLens"
           ln -sfn "${{ github.workspace }}/mechanic" "$PARENT/Mechanic"
           mkdir -p "$HOME/.mechanic"
           cat > "$HOME/.mechanic/config.json" <<EOF
@@ -76,8 +76,8 @@ jobs:
 
       - name: Sandbox tests
         run: |
-          mech call sandbox.test '{"addon": "SpecTraitLens", "path": "${{ github.workspace }}"}'
+          mech call sandbox.test '{"addon": "PerkLens", "path": "${{ github.workspace }}"}'
 
       - name: Busted tests
         run: |
-          mech call addon.test '{"addon": "SpecTraitLens", "path": "${{ github.workspace }}"}'
+          mech call addon.test '{"addon": "PerkLens", "path": "${{ github.workspace }}"}'

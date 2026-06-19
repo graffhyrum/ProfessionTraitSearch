@@ -1,4 +1,4 @@
-local root = os.getenv("STL_ROOT") or "."
+local root = os.getenv("PL_ROOT") or "."
 root = root:gsub("\\", "/")
 if root:sub(-1) == "/" then
 	root = root:sub(1, -2)

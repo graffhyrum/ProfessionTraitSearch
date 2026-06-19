@@ -1,1 +1,1 @@
-_G.SpecTraitLens = _G.SpecTraitLens or {}
+_G.PerkLens = _G.PerkLens or {}

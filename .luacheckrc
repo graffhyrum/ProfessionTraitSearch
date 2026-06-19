@@ -10,10 +10,10 @@ globals = {
 	"GetRealmName",
 	"UIParent",
 	"DEFAULT_CHAT_FRAME",
-	"SLASH_SPECTRAITLENS1",
-	"SLASH_SPECTRAITLENS2",
-	"SLASH_STL1",
-	"SLASH_STL2",
+	"SLASH_PERKLENS1",
+	"SLASH_PERKLENS2",
+	"SLASH_PL1",
+	"SLASH_PL2",
 	"SlashCmdList",
 	"hash_SlashCmdList",
 	"RegisterNewSlashCommand",
@@ -21,7 +21,8 @@ globals = {
 	"ProfessionsFrame",
 	"EventRegistry",
 	"TalentUtil",
-	"SpecTraitLens",
+	"PerkLens",
+	"PerkLensDB",
 	"SpecTraitLensDB",
 	"strtrim",
 	"hooksecurefunc",
@@ -60,4 +61,3 @@ exclude_files = {
 ignore = {
 	"212",
 }
-

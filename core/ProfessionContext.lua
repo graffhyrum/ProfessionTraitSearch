@@ -1,7 +1,7 @@
-local STL = _G.SpecTraitLens
+local PL = _G.PerkLens
 
 local ProfessionContext = {}
-STL.ProfessionContext = ProfessionContext
+PL.ProfessionContext = ProfessionContext
 
 local function hasSpec(skillLineID)
 	return skillLineID and C_ProfSpecs.SkillLineHasSpecialization(skillLineID)
