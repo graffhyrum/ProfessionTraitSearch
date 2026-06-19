@@ -28,6 +28,9 @@ Progress seam — `IsUnearned`, `IsCompleted`, and `IsEarned` centralize earned/
 **RowDisplay**:
 UI seam — `DisplayName` and `PerkBadgeText` map row kinds to player-facing labels.
 
+**RowPresentation**:
+Presentation seam — frame-agnostic colors, tints, fonts, min heights, and path rank badge text for index rows.
+
 **ViewMode**:
 Controller surface for index context policy — `embedded` (Professions spec-tab overlay), `standalone` (`/pl` window), or `closed`. UI sets mode; `embedded` prefers active profession context when rebuilding the index.
 

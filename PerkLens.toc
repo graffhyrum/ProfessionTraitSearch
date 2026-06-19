@@ -40,6 +40,8 @@ core\RowProgress.lua
 
 core\RowDisplay.lua
 
+core\RowPresentation.lua
+
 core\SpecIndex.lua
 
 core\SpecSearch.lua

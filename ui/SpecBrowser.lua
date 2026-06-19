@@ -22,13 +22,6 @@ local BADGE_GAP = 8
 local MIN_TEXT_WIDTH = 48
 local SCROLLBAR_GUTTER = 26
 
-local ROW_MIN = { tab = 36, path = 44, perk = 28 }
-local ROW_TINT = {
-	tab = { 0.75, 0.6, 0.1, 0.14 },
-	path = { 1, 1, 1, 0.05 },
-	perk = { 0, 0, 0, 0.04 },
-}
-
 local instances = {}
 
 local function initProfessionDropdown(_, level)
@@ -112,29 +105,6 @@ local function setWrappedHeight(fontString, width, text)
 	return 0
 end
 
-local function rowTint(row)
-	return ROW_TINT[row.kind] or ROW_TINT.perk
-end
-
-local function stateColor(row)
-	if row.kind == "perk" then
-		if PL.RowProgress.IsEarned(row) then
-			return 1, 0.82, 0
-		end
-		if row.isMajorPerk then
-			return 1, 0.72, 0.35
-		end
-		return 0.82, 0.82, 0.82
-	end
-	if PL.RowProgress.IsCompleted(row) then
-		return 0.45, 1, 0.45
-	end
-	if row.kind == "tab" then
-		return 1, 0.82, 0
-	end
-	return 1, 1, 1
-end
-
 local function createRow(parent)
 	local f = CreateFrame("Frame", nil, parent)
 	f:EnableMouse(true)
@@ -168,7 +138,7 @@ local function createRow(parent)
 		if not self.row then
 			return
 		end
-		local tint = rowTint(self.row)
+		local tint = PL.RowPresentation.RowTint(self.row)
 		self.bg:SetColorTexture(
 			math.min(tint[1] + 0.1, 1),
 			math.min(tint[2] + 0.1, 1),
@@ -180,7 +150,7 @@ local function createRow(parent)
 		if not self.row then
 			return
 		end
-		local tint = rowTint(self.row)
+		local tint = PL.RowPresentation.RowTint(self.row)
 		self.bg:SetColorTexture(tint[1], tint[2], tint[3], tint[4])
 	end)
 
@@ -204,37 +174,26 @@ local function scrollContentWidth(scroll)
 end
 
 local function populateRow(rowFrame, row, innerWidth)
-	local r, g, b = stateColor(row)
-	local tint = rowTint(row)
+	local r, g, b = PL.RowPresentation.TitleColor(row)
+	local tint = PL.RowPresentation.RowTint(row)
 
 	rowFrame.bg:SetColorTexture(tint[1], tint[2], tint[3], tint[4])
 	rowFrame.name:SetTextColor(r, g, b)
 	rowFrame.badge:SetText("")
 
 	local nameText = PL.RowDisplay.DisplayName(row)
-	local detailText = nil
-	local minH = ROW_MIN[row.kind] or ROW_MIN.perk
+	local detailText = detailAfterTitle(nameText, row.description)
+	local minH = PL.RowPresentation.MinHeight(row)
 
-	if row.kind == "tab" then
-		rowFrame.name:SetFontObject("GameFontNormalLarge")
-		detailText = detailAfterTitle(nameText, row.description)
-	elseif row.kind == "path" then
-		rowFrame.name:SetFontObject("GameFontHighlight")
-		detailText = detailAfterTitle(nameText, row.description)
-		if row.maxRanks and row.maxRanks > 0 then
-			rowFrame.badge:SetText(string.format("%d / %d", row.currentRank or 0, row.maxRanks))
-		end
-	else
-		rowFrame.name:SetFontObject("GameFontHighlightSmall")
-		detailText = detailAfterTitle(nameText, row.description)
+	rowFrame.name:SetFontObject(PL.RowPresentation.FontObject(row))
+
+	local pathBadge = PL.RowPresentation.PathRankBadge(row)
+	if pathBadge then
+		rowFrame.badge:SetText(pathBadge)
+	elseif row.kind == "perk" then
 		rowFrame.badge:SetText(PL.RowDisplay.PerkBadgeText(row))
-		if PL.RowProgress.IsEarned(row) then
-			rowFrame.badge:SetTextColor(0.45, 1, 0.45)
-		elseif row.isMajorPerk then
-			rowFrame.badge:SetTextColor(1, 0.72, 0.35)
-		else
-			rowFrame.badge:SetTextColor(0.55, 0.78, 1)
-		end
+		local br, bg, bb = PL.RowPresentation.BadgeColor(row)
+		rowFrame.badge:SetTextColor(br, bg, bb)
 	end
 
 	local badgeReserve = measureBadgeReserve(rowFrame.badge)
