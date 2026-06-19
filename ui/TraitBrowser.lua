@@ -20,6 +20,49 @@ local ROW_TINT = {
 
 local instances = {}
 
+local function initProfessionDropdown(_, level)
+	if level ~= 1 then
+		return
+	end
+	local ctx = STL.Controller:GetContext()
+	local currentID = ctx and ctx.skillLineID
+	for _, prof in ipairs(STL.Controller:ListProfessions()) do
+		local info = UIDropDownMenu_CreateInfo()
+		info.text = prof.professionName
+		info.value = prof.skillLineID
+		info.checked = prof.skillLineID == currentID
+		info.func = function()
+			STL.Controller:SetSkillLine(prof.skillLineID)
+		end
+		UIDropDownMenu_AddButton(info)
+	end
+end
+
+local function refreshProfessionSelector(browser)
+	local professions = STL.Controller:ListProfessions()
+	local ctx = STL.Controller:GetContext()
+
+	if #professions <= 1 then
+		browser.profDropdown:Hide()
+		browser.header:Show()
+		if ctx then
+			browser.header:SetText(ctx.professionName or "Profession")
+		elseif professions[1] then
+			browser.header:SetText(professions[1].professionName or "Profession")
+		else
+			browser.header:SetText("No profession specialization available")
+		end
+		return
+	end
+
+	browser.header:Hide()
+	browser.profDropdown:Show()
+	local selectedID = ctx and ctx.skillLineID or professions[1].skillLineID
+	local selectedName = ctx and ctx.professionName or professions[1].professionName
+	UIDropDownMenu_SetSelectedValue(browser.profDropdown, selectedID)
+	UIDropDownMenu_SetText(browser.profDropdown, selectedName)
+end
+
 local function detailAfterTitle(title, body)
 	body = body or ""
 	title = title or ""
@@ -222,6 +265,13 @@ local function buildChrome(browser)
 	header:SetTextColor(1, 0.82, 0)
 	browser.header = header
 
+	local profDropdown = CreateFrame("Frame", nil, browser, "UIDropDownMenuTemplate")
+	profDropdown:SetPoint("TOPLEFT", 14, -12)
+	UIDropDownMenu_SetWidth(profDropdown, 220)
+	UIDropDownMenu_Initialize(profDropdown, initProfessionDropdown)
+	profDropdown:Hide()
+	browser.profDropdown = profDropdown
+
 	local kpLabel = browser:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 	kpLabel:SetPoint("TOPRIGHT", -36, -20)
 	kpLabel:SetTextColor(0.55, 0.78, 1)
@@ -300,11 +350,10 @@ function TraitBrowser:Update(browser)
 	buildChrome(browser)
 	local ctx = STL.Controller:GetContext()
 	local kp = STL.Controller:GetKnowledgeAvailable()
+	refreshProfessionSelector(browser)
 	if ctx then
-		browser.header:SetText(ctx.professionName or "Profession")
 		browser.kpLabel:SetText("Knowledge: " .. kp)
 	else
-		browser.header:SetText("No profession specialization available")
 		browser.kpLabel:SetText("")
 	end
 	browser.search:SetText(STL.Controller:GetSearchText())

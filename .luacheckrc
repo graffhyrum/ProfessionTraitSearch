@@ -31,6 +31,13 @@ globals = {
 	"UICheckButtonTemplate",
 	"UIPanelCloseButton",
 	"UIPanelScrollFrameTemplate",
+	"UIDropDownMenuTemplate",
+	"UIDropDownMenu_AddButton",
+	"UIDropDownMenu_CreateInfo",
+	"UIDropDownMenu_Initialize",
+	"UIDropDownMenu_SetSelectedValue",
+	"UIDropDownMenu_SetText",
+	"UIDropDownMenu_SetWidth",
 }
 
 read_globals = {
