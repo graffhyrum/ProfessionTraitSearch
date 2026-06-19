@@ -14,10 +14,9 @@ local TAB_ICON = "Interface\\Icons\\INV_Misc_Book_09"
 local TAB_ANCHOR_X = 0
 local TAB_ANCHOR_Y = -128
 
-local SPEC_CHROME_KEYS = {
+local SPEC_CORE_KEYS = {
 	"TreeView",
 	"DetailedView",
-	"TreePreview",
 	"ButtonsParent",
 	"VerticalDivider",
 	"TopDivider",
@@ -25,11 +24,15 @@ local SPEC_CHROME_KEYS = {
 	"ApplyButton",
 	"UnlockTabButton",
 	"UndoButton",
+	"FxModelScene",
+}
+
+local SPEC_STATEFUL_KEYS = {
+	"TreePreview",
 	"ViewTreeButton",
 	"BackToPreviewButton",
 	"ViewPreviewButton",
 	"BackToFullTreeButton",
-	"FxModelScene",
 }
 
 local function isSpecTabActive()
@@ -64,8 +67,20 @@ local function setBlizzardSpecChromeVisible(visible)
 		return
 	end
 
-	for i = 1, #SPEC_CHROME_KEYS do
-		setFrameShown(specPage[SPEC_CHROME_KEYS[i]], visible)
+	if visible then
+		for i = 1, #SPEC_CORE_KEYS do
+			setFrameShown(specPage[SPEC_CORE_KEYS[i]], true)
+		end
+		for i = 1, #SPEC_STATEFUL_KEYS do
+			setFrameShown(specPage[SPEC_STATEFUL_KEYS[i]], false)
+		end
+	else
+		for i = 1, #SPEC_CORE_KEYS do
+			setFrameShown(specPage[SPEC_CORE_KEYS[i]], false)
+		end
+		for i = 1, #SPEC_STATEFUL_KEYS do
+			setFrameShown(specPage[SPEC_STATEFUL_KEYS[i]], false)
+		end
 	end
 
 	forEachPoolEntry(specPage.tabsPool, function(tab)
@@ -76,36 +91,53 @@ local function setBlizzardSpecChromeVisible(visible)
 	end)
 end
 
+local function selectSpecTab(specPage, tabTreeID)
+	if EventRegistry and EventRegistry.TriggerEvent then
+		EventRegistry:TriggerEvent("ProfessionsSpecializations.TabSelected", tabTreeID)
+	elseif specPage.SetSelectedTab then
+		specPage:SetSelectedTab(tabTreeID)
+	end
+end
+
+local function selectSpecPath(specPage, tabTreeID, pathID)
+	if specPage.SetDefaultPath then
+		specPage:SetDefaultPath(pathID)
+	end
+	if specPage.SetDefaultTab then
+		specPage:SetDefaultTab(tabTreeID)
+	end
+	if EventRegistry and EventRegistry.TriggerEvent then
+		EventRegistry:TriggerEvent("ProfessionsSpecializations.PathSelected", pathID, true)
+	elseif specPage.SetDetailedPanel then
+		specPage:SetDetailedPanel(pathID)
+	end
+end
+
 local function restoreBlizzardSpecToCurrentTab()
 	local specPage = getSpecPage()
 	if not specPage then
 		return
 	end
 
+	setBlizzardSpecChromeVisible(true)
+
 	local treeID = specPage.GetTalentTreeID and specPage:GetTalentTreeID()
-	if treeID and specPage.SetSelectedTab then
-		specPage:SetSelectedTab(treeID)
+	if treeID then
+		selectSpecTab(specPage, treeID)
 		return
 	end
 
 	if specPage.UpdateSelectedTabState then
 		specPage:UpdateSelectedTabState()
 	end
-	if specPage.TreePreview and specPage.GetTalentTreeID and specPage.GetConfigID then
-		local isLocked = C_ProfSpecs.GetStateForTab(specPage:GetTalentTreeID(), specPage:GetConfigID())
-			~= Enum.ProfessionsSpecTabState.Unlocked
-		specPage.TreePreview:SetShown(isLocked)
-	end
 end
 
 local function restoreBlizzardSpecUI()
-	setBlizzardSpecChromeVisible(true)
 	restoreBlizzardSpecToCurrentTab()
 end
 
 local function exitIndexOverlay()
 	indexMode = false
-	setBlizzardSpecChromeVisible(true)
 	PL.SpecBrowser:SetEmbeddedVisible(false)
 	updateIndexTab()
 end
@@ -130,23 +162,14 @@ end
 
 local function applySpecNavigation(target)
 	local specPage = getSpecPage()
-	if not specPageMatchesTarget(specPage, target) or not specPage.SetSelectedTab then
+	if not specPageMatchesTarget(specPage, target) then
 		return false
 	end
 
-	specPage:SetSelectedTab(target.tabTreeID)
+	setBlizzardSpecChromeVisible(true)
+	selectSpecTab(specPage, target.tabTreeID)
 	if target.pathID then
-		if specPage.SetDefaultPath then
-			specPage:SetDefaultPath(target.pathID)
-		end
-		if specPage.SetDefaultTab then
-			specPage:SetDefaultTab(target.tabTreeID)
-		end
-		if EventRegistry and EventRegistry.TriggerEvent then
-			EventRegistry:TriggerEvent("ProfessionsSpecializations.PathSelected", target.pathID, true)
-		elseif specPage.SetDetailedPanel then
-			specPage:SetDetailedPanel(target.pathID)
-		end
+		selectSpecPath(specPage, target.tabTreeID, target.pathID)
 	end
 	return true
 end
@@ -154,12 +177,14 @@ end
 local function applyPendingNav()
 	local target = pendingNav
 	if not target or not ProfessionsFrame or not specTabID then
-		return
+		return false
 	end
 
 	if applySpecNavigation(target) then
 		pendingNav = nil
+		return true
 	end
+	return false
 end
 
 local function ensureSpecTabSelected()
@@ -182,7 +207,12 @@ end
 
 local function schedulePendingNav()
 	ensureNavFrame()
-	RunNextFrame(applyPendingNav)
+	RunNextFrame(function()
+		if applyPendingNav() then
+			return
+		end
+		RunNextFrame(applyPendingNav)
+	end)
 end
 
 function ProfessionsHook:NavigateToRow(row)
