@@ -2134,7 +2134,9 @@
         "AutoQuestPopupTrackerMixin",
         "EventToastManagerFrameMixin",
         "UIErrorsMixin",
-        "TalentUtil"
+        "TalentUtil",
+        "hash_SlashCmdList",
+        "RegisterNewSlashCommand"
     ],
     "Lua.diagnostics.disable": [
         "assign-type-mismatch"

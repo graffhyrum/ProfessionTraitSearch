@@ -3,11 +3,13 @@ local STL = _G.SpecTraitLens
 local Slash = {}
 STL.Slash = Slash
 
+local HASH_KEYS = { "/STL", "/SPECTRAITLENS" }
+
 local function printHelp()
 	DEFAULT_CHAT_FRAME:AddMessage("|cff33cc99Spec Trait Lens|r — /stl, /stl search <term>, /stl status")
 end
 
-local function onSlash(msg)
+local function dispatchSlash(msg)
 	msg = strtrim(msg or "")
 	local lower = msg:lower()
 	if lower == "status" then
@@ -29,7 +31,37 @@ local function onSlash(msg)
 	STL.TraitBrowser:ToggleStandalone()
 end
 
-function Slash:Init()
-	SLASH_SPECTRAITLENS1 = "/stl"
-	SlashCmdList["SPECTRAITLENS"] = onSlash
+local function onSlash(msg)
+	local ok, err = pcall(dispatchSlash, msg)
+	if not ok then
+		DEFAULT_CHAT_FRAME:AddMessage("|cffff0000Spec Trait Lens error:|r " .. tostring(err))
+	end
 end
+
+local function mirrorHash()
+	if not hash_SlashCmdList then
+		return
+	end
+	for i = 1, #HASH_KEYS do
+		hash_SlashCmdList[HASH_KEYS[i]] = onSlash
+	end
+end
+
+function Slash:Init()
+	if self.registered then
+		return
+	end
+	self.registered = true
+
+	if RegisterNewSlashCommand then
+		RegisterNewSlashCommand(onSlash, "stl", "spectraitlens")
+	else
+		SLASH_SPECTRAITLENS1 = "/stl"
+		SLASH_SPECTRAITLENS2 = "/spectraitlens"
+		SlashCmdList["SPECTRAITLENS"] = onSlash
+	end
+
+	mirrorHash()
+end
+
+Slash:Init()

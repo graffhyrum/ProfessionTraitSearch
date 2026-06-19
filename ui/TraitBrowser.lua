@@ -3,19 +3,56 @@ local STL = _G.SpecTraitLens
 local TraitBrowser = {}
 STL.TraitBrowser = TraitBrowser
 
-local ROW_HEIGHT_TAB = 28
-local ROW_HEIGHT_PATH = 56
-local ROW_HEIGHT_PERK = 44
+local FRAME_WIDTH = 540
+local FRAME_HEIGHT = 660
+local PADDING_X = 14
+local ROW_GAP = 6
+local INDENT = 18
+local TEXT_GAP = 3
+local CONTENT_WIDTH = 460
+
+local ROW_MIN = { tab = 36, path = 44, perk = 28 }
+local ROW_TINT = {
+	tab = { 0.75, 0.6, 0.1, 0.14 },
+	path = { 1, 1, 1, 0.05 },
+	perk = { 0, 0, 0, 0.04 },
+}
 
 local instances = {}
 
-local function rowHeight(row)
-	if row.kind == "tab" then
-		return ROW_HEIGHT_TAB
-	elseif row.kind == "path" then
-		return ROW_HEIGHT_PATH
+local function detailAfterTitle(title, body)
+	body = body or ""
+	title = title or ""
+	if body == "" or body == title then
+		return nil
 	end
-	return ROW_HEIGHT_PERK
+	if body:sub(1, #title) == title then
+		local rest = strtrim(body:sub(#title + 1))
+		if rest:sub(1, 1) == "\n" then
+			rest = strtrim(rest:sub(2))
+		end
+		if rest == "" then
+			return nil
+		end
+		return rest
+	end
+	return body
+end
+
+local function setWrappedHeight(fontString, width, text)
+	fontString:SetWidth(width)
+	if text and text ~= "" then
+		fontString:SetText(text)
+		fontString:Show()
+		return fontString:GetStringHeight() + TEXT_GAP
+	end
+	fontString:SetText("")
+	fontString:Hide()
+	return 0
+end
+
+local function rowTint(row)
+	return ROW_TINT[row.kind] or ROW_TINT.perk
 end
 
 local function stateColor(row)
@@ -23,88 +60,141 @@ local function stateColor(row)
 		if row.isEarned then
 			return 1, 0.82, 0
 		end
-		return 0.6, 0.6, 0.6
+		if row.isMajorPerk then
+			return 1, 0.72, 0.35
+		end
+		return 0.82, 0.82, 0.82
 	end
 	if row.kind == "path" and row.isCompleted then
-		return 0.4, 1, 0.4
+		return 0.45, 1, 0.45
+	end
+	if row.kind == "tab" then
+		return 1, 0.82, 0
 	end
 	return 1, 1, 1
 end
 
-local function createRow(parent, index)
+local function perkBadges(row)
+	local parts = {}
+	if row.isMajorPerk then
+		parts[#parts + 1] = "Major"
+	end
+	if row.unlockRank then
+		parts[#parts + 1] = "Rank " .. row.unlockRank
+	end
+	if row.isEarned then
+		parts[#parts + 1] = "Earned"
+	end
+	return table.concat(parts, " · ")
+end
+
+local function createRow(parent)
 	local f = CreateFrame("Frame", nil, parent)
-	f:SetHeight(ROW_HEIGHT_PATH)
-	f:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, -((index - 1) * ROW_HEIGHT_PATH))
-	f:SetPoint("RIGHT", parent, "RIGHT", 0, 0)
+
+	f.bg = f:CreateTexture(nil, "BACKGROUND")
+	f.bg:SetPoint("TOPLEFT", 0, 0)
+	f.bg:SetPoint("BOTTOMRIGHT", 0, 0)
 
 	f.name = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	f.name:SetPoint("TOPLEFT", 8, -4)
+	f.name:SetPoint("TOPLEFT", PADDING_X, -6)
 	f.name:SetJustifyH("LEFT")
-	f.name:SetWidth(420)
 
 	f.detail = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-	f.detail:SetPoint("TOPLEFT", f.name, "BOTTOMLEFT", 0, -2)
+	f.detail:SetPoint("TOPLEFT", f.name, "BOTTOMLEFT", 0, -TEXT_GAP)
 	f.detail:SetJustifyH("LEFT")
-	f.detail:SetWidth(420)
-	f.detail:SetMaxLines(3)
+	f.detail:SetTextColor(0.72, 0.72, 0.72)
 
 	f.badge = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	f.badge:SetPoint("TOPRIGHT", -8, -4)
+	f.badge:SetPoint("TOPRIGHT", -PADDING_X, -6)
+	f.badge:SetJustifyH("RIGHT")
+	f.badge:SetTextColor(0.55, 0.78, 1)
 
 	return f
+end
+
+local function populateRow(rowFrame, row, innerWidth)
+	local badgeWidth = 108
+	local textWidth = math.max(innerWidth - (PADDING_X * 2) - badgeWidth, 120)
+	local r, g, b = stateColor(row)
+	local tint = rowTint(row)
+
+	rowFrame.bg:SetColorTexture(tint[1], tint[2], tint[3], tint[4])
+	rowFrame.name:SetTextColor(r, g, b)
+	rowFrame.badge:SetText("")
+
+	local nameText = ""
+	local detailText = nil
+	local minH = ROW_MIN[row.kind] or ROW_MIN.perk
+
+	if row.kind == "tab" then
+		rowFrame.name:SetFontObject("GameFontNormalLarge")
+		nameText = row.name or ""
+		detailText = detailAfterTitle(nameText, row.description)
+	elseif row.kind == "path" then
+		rowFrame.name:SetFontObject("GameFontHighlight")
+		nameText = row.name or "Path"
+		detailText = detailAfterTitle(nameText, row.description)
+		if row.maxRanks and row.maxRanks > 0 then
+			rowFrame.badge:SetText(string.format("%d / %d", row.currentRank or 0, row.maxRanks))
+		end
+	else
+		rowFrame.name:SetFontObject("GameFontHighlightSmall")
+		nameText = row.name or "Perk"
+		detailText = detailAfterTitle(nameText, row.description)
+		rowFrame.badge:SetText(perkBadges(row))
+		if row.isEarned then
+			rowFrame.badge:SetTextColor(0.45, 1, 0.45)
+		elseif row.isMajorPerk then
+			rowFrame.badge:SetTextColor(1, 0.72, 0.35)
+		else
+			rowFrame.badge:SetTextColor(0.55, 0.78, 1)
+		end
+	end
+
+	rowFrame.name:SetWidth(textWidth)
+	rowFrame.name:SetText(nameText)
+
+	local nameH = rowFrame.name:GetStringHeight() + TEXT_GAP
+	local detailH = 0
+	if detailText then
+		detailH = setWrappedHeight(rowFrame.detail, textWidth, detailText)
+	else
+		rowFrame.detail:Hide()
+	end
+
+	return math.max(minH, 6 + nameH + detailH + 6)
 end
 
 local function layoutRows(browser)
 	local rows = STL.Controller:GetVisibleRows()
 	local content = browser.content
-	local y = 0
+	local innerWidth = browser.contentWidth or CONTENT_WIDTH
+	local y = 4
 	local pool = browser.pool
 	local used = 0
+
+	content:SetWidth(innerWidth)
 
 	for i = 1, #rows do
 		used = used + 1
 		local rowFrame = pool[used]
 		if not rowFrame then
-			rowFrame = createRow(content, used)
+			rowFrame = createRow(content)
 			pool[used] = rowFrame
 		end
+
 		local row = rows[i]
-		local h = rowHeight(row)
+		local indent = (row.depth or 0) * INDENT
+		local h = populateRow(rowFrame, row, innerWidth - indent)
+
 		rowFrame:ClearAllPoints()
-		rowFrame:SetPoint("TOPLEFT", content, "TOPLEFT", (row.depth or 0) * 16, -y)
-		rowFrame:SetPoint("RIGHT", content, "RIGHT", 0, 0)
+		rowFrame:SetPoint("TOPLEFT", content, "TOPLEFT", indent, -y)
+		rowFrame:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, -y)
 		rowFrame:SetHeight(h)
 		rowFrame:Show()
-
-		local r, g, b = stateColor(row)
-		rowFrame.name:SetTextColor(r, g, b)
-		rowFrame.detail:SetTextColor(0.8, 0.8, 0.8)
-
-		if row.kind == "tab" then
-			rowFrame.name:SetFontObject("GameFontNormalLarge")
-			rowFrame.name:SetText(row.name or "")
-			rowFrame.detail:SetText(row.description or "")
-			rowFrame.badge:SetText("")
-		elseif row.kind == "path" then
-			rowFrame.name:SetFontObject("GameFontHighlight")
-			local rank = ""
-			if row.maxRanks and row.maxRanks > 0 then
-				rank = string.format(" (%d/%d)", row.currentRank or 0, row.maxRanks)
-			end
-			rowFrame.name:SetText((row.name or "Path") .. rank)
-			rowFrame.detail:SetText(row.description or "")
-			rowFrame.badge:SetText("")
-		else
-			rowFrame.name:SetFontObject("GameFontHighlightSmall")
-			local prefix = row.isMajorPerk and "[Major] " or ""
-			local unlock = row.unlockRank and (" @ rank " .. row.unlockRank) or ""
-			rowFrame.name:SetText(prefix .. (row.name or "Perk") .. unlock)
-			rowFrame.detail:SetText(row.description or "")
-			rowFrame.badge:SetText(row.isEarned and "Earned" or "")
-		end
-
 		rowFrame.pathID = row.pathID
-		y = y + h + 4
+
+		y = y + h + ROW_GAP
 	end
 
 	for i = used + 1, #pool do
@@ -120,13 +210,38 @@ local function buildChrome(browser)
 	end
 	browser.built = true
 
+	local headerBg = browser:CreateTexture(nil, "BACKGROUND", nil, 1)
+	headerBg:SetColorTexture(0.04, 0.04, 0.06, 0.85)
+	headerBg:SetPoint("TOPLEFT", 10, -10)
+	headerBg:SetPoint("TOPRIGHT", -10, -10)
+	headerBg:SetHeight(52)
+	browser.headerBg = headerBg
+
 	local header = browser:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	header:SetPoint("TOPLEFT", 16, -12)
+	header:SetPoint("TOPLEFT", 18, -18)
+	header:SetTextColor(1, 0.82, 0)
 	browser.header = header
 
+	local kpLabel = browser:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	kpLabel:SetPoint("TOPRIGHT", -36, -20)
+	kpLabel:SetTextColor(0.55, 0.78, 1)
+	browser.kpLabel = kpLabel
+
+	local divider = browser:CreateTexture(nil, "ARTWORK")
+	divider:SetColorTexture(0.45, 0.38, 0.2, 0.55)
+	divider:SetPoint("TOPLEFT", 12, -62)
+	divider:SetPoint("TOPRIGHT", -12, -62)
+	divider:SetHeight(1)
+	browser.divider = divider
+
+	local searchLabel = browser:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	searchLabel:SetPoint("TOPLEFT", 18, -74)
+	searchLabel:SetText("Search")
+	searchLabel:SetTextColor(0.7, 0.7, 0.7)
+
 	local search = CreateFrame("EditBox", nil, browser, "InputBoxTemplate")
-	search:SetSize(280, 20)
-	search:SetPoint("TOPLEFT", 16, -36)
+	search:SetSize(300, 22)
+	search:SetPoint("TOPLEFT", 18, -90)
 	search:SetAutoFocus(false)
 	search:SetScript("OnTextChanged", function(self)
 		STL.Controller:SetSearchText(self:GetText())
@@ -137,9 +252,9 @@ local function buildChrome(browser)
 	browser.search = search
 
 	local major = CreateFrame("CheckButton", nil, browser, "UICheckButtonTemplate")
-	major:SetPoint("TOPLEFT", 16, -64)
+	major:SetPoint("TOPLEFT", 18, -122)
 	major.text = major:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-	major.text:SetPoint("LEFT", major, "RIGHT", 2, 0)
+	major.text:SetPoint("LEFT", major, "RIGHT", 0, 0)
 	major.text:SetText("Major pips only")
 	major:SetScript("OnClick", function(self)
 		STL.Controller:SetMajorPipsOnly(self:GetChecked())
@@ -147,24 +262,31 @@ local function buildChrome(browser)
 	browser.major = major
 
 	local unearned = CreateFrame("CheckButton", nil, browser, "UICheckButtonTemplate")
-	unearned:SetPoint("TOPLEFT", 180, -64)
+	unearned:SetPoint("TOPLEFT", 200, -122)
 	unearned.text = unearned:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-	unearned.text:SetPoint("LEFT", unearned, "RIGHT", 2, 0)
+	unearned.text:SetPoint("LEFT", unearned, "RIGHT", 0, 0)
 	unearned.text:SetText("Unearned only")
 	unearned:SetScript("OnClick", function(self)
 		STL.Controller:SetUnearnedOnly(self:GetChecked())
 	end)
 	browser.unearned = unearned
 
+	local scrollBg = browser:CreateTexture(nil, "BACKGROUND", nil, 0)
+	scrollBg:SetColorTexture(0.02, 0.02, 0.03, 0.55)
+	scrollBg:SetPoint("TOPLEFT", 10, -150)
+	scrollBg:SetPoint("BOTTOMRIGHT", -10, 10)
+	browser.scrollBg = scrollBg
+
 	local scroll = CreateFrame("ScrollFrame", nil, browser, "UIPanelScrollFrameTemplate")
-	scroll:SetPoint("TOPLEFT", 8, -92)
-	scroll:SetPoint("BOTTOMRIGHT", -28, 8)
+	scroll:SetPoint("TOPLEFT", 14, -154)
+	scroll:SetPoint("BOTTOMRIGHT", -30, 14)
 	browser.scroll = scroll
 
 	local content = CreateFrame("Frame", nil, scroll)
-	content:SetWidth(460)
+	content:SetWidth(CONTENT_WIDTH)
 	scroll:SetScrollChild(content)
 	browser.content = content
+	browser.contentWidth = CONTENT_WIDTH
 	browser.pool = {}
 
 	STL.Controller.RegisterCallback(function()
@@ -174,18 +296,28 @@ local function buildChrome(browser)
 	end)
 end
 
-function TraitBrowser.Update(browser)
+function TraitBrowser:Update(browser)
 	buildChrome(browser)
 	local ctx = STL.Controller:GetContext()
 	local kp = STL.Controller:GetKnowledgeAvailable()
 	if ctx then
-		browser.header:SetText(string.format("%s — Knowledge: %d", ctx.professionName, kp))
+		browser.header:SetText(ctx.professionName or "Profession")
+		browser.kpLabel:SetText("Knowledge: " .. kp)
 	else
 		browser.header:SetText("No profession specialization available")
+		browser.kpLabel:SetText("")
 	end
 	browser.search:SetText(STL.Controller:GetSearchText())
 	browser.major:SetChecked(STL.Controller:GetMajorPipsOnly())
 	browser.unearned:SetChecked(STL.Controller:GetUnearnedOnly())
+
+	if browser.scroll then
+		local scrollWidth = browser.scroll:GetWidth()
+		if scrollWidth and scrollWidth > 0 then
+			browser.contentWidth = scrollWidth - 8
+		end
+	end
+
 	layoutRows(browser)
 end
 
@@ -194,7 +326,7 @@ function TraitBrowser:CreateStandalone()
 		return self.standalone
 	end
 	local f = CreateFrame("Frame", "SpecTraitLensBrowser", UIParent, "BackdropTemplate")
-	f:SetSize(500, 600)
+	f:SetSize(FRAME_WIDTH, FRAME_HEIGHT)
 	f:SetPoint("CENTER")
 	f:SetBackdrop({
 		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
@@ -202,9 +334,9 @@ function TraitBrowser:CreateStandalone()
 		tile = true,
 		tileSize = 32,
 		edgeSize = 32,
-		insets = { left = 8, right = 8, top = 8, bottom = 8 },
+		insets = { left = 11, right = 11, top = 11, bottom = 11 },
 	})
-	f:SetBackdropColor(0, 0, 0, 0.92)
+	f:SetBackdropColor(0.05, 0.05, 0.08, 0.97)
 	f:Hide()
 	f:SetMovable(true)
 	f:EnableMouse(true)
@@ -221,7 +353,7 @@ function TraitBrowser:CreateStandalone()
 	end)
 
 	local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
-	close:SetPoint("TOPRIGHT", -4, -4)
+	close:SetPoint("TOPRIGHT", -2, -2)
 
 	self.standalone = f
 	instances[#instances + 1] = f
