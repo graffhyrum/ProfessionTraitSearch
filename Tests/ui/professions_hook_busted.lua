@@ -10,7 +10,9 @@ describe("ProfessionsHook forward refs", function()
 		updateIndexTab = function()
 			called = true
 		end
-		assert.has_no.errors(exitIndexOverlay)
+		assert.has_no.errors(function()
+			exitIndexOverlay()
+		end)
 		assert.is_true(called)
 	end)
 end)
