@@ -64,7 +64,8 @@ The tab **root path** (`tabInfo.rootNodeID`, path layer `Root`) is the unlock/sp
 | **Row** | Index entry: `tab`, `path`, or `perk` | One specialization, sub-specialization, or perk line |
 | **Searchable text** | Concatenated descriptions for keyword search | (not player-visible) |
 | **Visible rows** | Filtered index with ancestor promotion | (not player-visible) |
-| **Profession context** | `{ skillLineID, configID, professionName }` | Active **Profession** scope |
+| **Profession context** | `{ skillLineID, configID, professionName }` — resolved index scope via `ProfessionContext` | Active **Profession** scope |
+| **Trade skill session** | `TradeSkillSession` — child-line load, `DataReady`, frame sync, open strategy | (not player-visible) |
 | **Index mode** | Embedded index replacing Blizzard spec tree view | (PerkLens product behavior) |
 
 ## Filters and progress (player labels = Blizzard enums)

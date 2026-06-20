@@ -156,6 +156,7 @@ describe("ProfessionsNavigator.Navigate", function()
 			end,
 		}
 
+		load_addon.load("core/TradeSkillSession.lua")
 		load_addon.load("ui/ProfessionsNavigator.lua")
 		_G.ProfessionsFrame = makeProfessionsFrame(2881, false)
 	end)
@@ -245,6 +246,7 @@ describe("ProfessionsNavigator.Navigate", function()
 	it("standalone uses synchronous expansion refresh for same parent profession", function()
 		childSkillLineID = 2881
 		baseProfessionID = 186
+		load_addon.load("core/TradeSkillSession.lua")
 		load_addon.load("core/Controller.lua", "PerkLens")
 		local pl = load_addon.pl()
 		pl.Controller:SetViewMode("standalone")

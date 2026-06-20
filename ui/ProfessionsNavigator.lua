@@ -57,75 +57,8 @@ local function applySpecNavigation(target)
 	return true
 end
 
-local function professionDataReady()
-	return PL.ProfessionContext.ProfessionDataReady()
-end
-
-local function ensureSpecTabSelected()
-	local specTabID = getSpecTabID()
-	if ProfessionsFrame and ProfessionsFrame.SetTab and specTabID then
-		ProfessionsFrame:SetTab(specTabID, true)
-	end
-end
-
-local function getParentProfessionID(skillLineID)
-	local info = C_TradeSkillUI and C_TradeSkillUI.GetProfessionInfoBySkillLineID and C_TradeSkillUI.GetProfessionInfoBySkillLineID(skillLineID)
-	return info and info.parentProfessionID
-end
-
-local function showProfessionsOnSpecTab()
-	if not ProfessionsFrame:IsShown() and ShowUIPanel then
-		ShowUIPanel(ProfessionsFrame)
-	end
-	ensureSpecTabSelected()
-end
-
 local function isStandaloneNavigation()
 	return PL.Controller and PL.Controller:GetViewMode() == "standalone"
-end
-
-local function requestProfessionOpen(skillLineID, forceFull)
-	if not forceFull and PL.ProfessionContext.GetChildSkillLineID() == skillLineID then
-		if not ProfessionsFrame:IsShown() and ShowUIPanel then
-			ShowUIPanel(ProfessionsFrame)
-		end
-		return
-	end
-
-	if not forceFull and PL.ProfessionContext.IsOnTargetParentProfession(skillLineID) then
-		PL.ProfessionContext.EnsureSkillLineLoaded(skillLineID)
-		local child = C_TradeSkillUI.GetChildProfessionInfo and C_TradeSkillUI.GetChildProfessionInfo()
-		if child and EventRegistry and EventRegistry.TriggerEvent then
-			child.openSpecTab = true
-			EventRegistry:TriggerEvent("Professions.ProfessionSelected", child)
-		end
-		if not ProfessionsFrame:IsShown() and ShowUIPanel then
-			ShowUIPanel(ProfessionsFrame)
-		end
-		return
-	end
-
-	if forceFull and PL.ProfessionContext.IsOnTargetParentProfession(skillLineID) then
-		if PL.ProfessionContext.ApplyProfessionFrameUpdate(skillLineID, true) then
-			showProfessionsOnSpecTab()
-			return
-		end
-		if ProfessionsFrame.SetOpenRecipeResponse then
-			ProfessionsFrame:SetOpenRecipeResponse(skillLineID, nil, true)
-		end
-		if not ProfessionsFrame:IsShown() and ShowUIPanel then
-			ShowUIPanel(ProfessionsFrame)
-		end
-		return
-	end
-
-	if ProfessionsFrame.SetOpenRecipeResponse then
-		ProfessionsFrame:SetOpenRecipeResponse(skillLineID, nil, true)
-	end
-	local openID = getParentProfessionID(skillLineID) or skillLineID
-	if C_TradeSkillUI and C_TradeSkillUI.OpenTradeSkill then
-		C_TradeSkillUI.OpenTradeSkill(openID)
-	end
 end
 
 local function applyPendingNav()
@@ -134,7 +67,7 @@ local function applyPendingNav()
 		return false
 	end
 
-	if not professionDataReady() then
+	if not PL.TradeSkillSession:DataReady() then
 		return false
 	end
 
@@ -143,7 +76,7 @@ local function applyPendingNav()
 		return false
 	end
 
-	ensureSpecTabSelected()
+	PL.TradeSkillSession:EnsureSpecTabSelected()
 
 	if applySpecNavigation(target) then
 		pendingNav = nil
@@ -197,7 +130,10 @@ function ProfessionsNavigator:Navigate(row)
 	end
 
 	pendingNav = target
-	requestProfessionOpen(target.skillLineID, isStandaloneNavigation())
+	PL.TradeSkillSession:OpenForSkillLine(target.skillLineID, {
+		forceFull = isStandaloneNavigation(),
+		openSpecTab = true,
+	})
 	if not applyPendingNav() then
 		schedulePendingNav()
 	end

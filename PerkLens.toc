@@ -32,6 +32,8 @@ core\init.lua
 
 core\Debounce.lua
 
+core\TradeSkillSession.lua
+
 core\ProfessionContext.lua
 
 core\RankUtil.lua

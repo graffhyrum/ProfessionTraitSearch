@@ -34,6 +34,12 @@ Presentation seam — frame-agnostic colors, tints, fonts, min heights, and path
 **ViewMode**:
 Controller surface for index context policy — `embedded` (Professions spec-tab overlay), `standalone` (`/pl` window), or `closed`. UI sets mode; `embedded` prefers active profession context when rebuilding the index.
 
+**Profession context**:
+Resolved scope for the **spec index** — `{ skillLineID, configID, professionName }` from `ProfessionContext` (`ResolveForIndex`, `GetActiveContext`, listing, **Knowledge**). Domain resolution only; no `C_TradeSkillUI` load/sync.
+
+**Trade skill session**:
+I/O seam — `TradeSkillSession` owns child skill line load, data-ready gating, profession frame sync, and open strategy (`C_TradeSkillUI`, `ProfessionsFrame`, `EventRegistry`). Callers pass explicit options; session does not read **ViewMode**.
+
 **Searchable text**:
 Path description plus perk descriptions on that path — powers keyword search.
 _Avoid_: search index

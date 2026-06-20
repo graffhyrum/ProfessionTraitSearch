@@ -41,6 +41,7 @@ end
 function M.load_core()
 	M.load("core/init.lua")
 	M.load("core/Debounce.lua")
+	M.load("core/TradeSkillSession.lua")
 	M.load("core/ProfessionContext.lua")
 	M.load("core/RankUtil.lua")
 	M.load("core/RowProgress.lua")

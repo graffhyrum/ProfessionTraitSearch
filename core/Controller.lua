@@ -90,7 +90,7 @@ local function refreshProfessionsFrameForSelection()
 	if not charDB.lastSkillLineID then
 		return
 	end
-	PL.ProfessionContext.ApplyProfessionFrameUpdate(charDB.lastSkillLineID, false)
+	PL.TradeSkillSession:SyncProfessionFrame(charDB.lastSkillLineID, { openSpecTab = false })
 end
 
 local function ensureEventFrame()
@@ -108,7 +108,7 @@ local function ensureEventFrame()
 			return
 		end
 		if event == "TRADE_SKILL_LIST_UPDATE" then
-			if not PL.ProfessionContext.ProfessionDataReady() then
+			if not PL.TradeSkillSession:DataReady() then
 				return
 			end
 			refreshProfessionsFrameForSelection()
@@ -227,15 +227,9 @@ end
 
 function Controller:SetSkillLine(skillLineID)
 	self:GetCharDB().lastSkillLineID = skillLineID
-	local synced = false
-	if viewMode == "standalone" and PL.ProfessionContext.IsOnTargetParentProfession(skillLineID) then
-		synced = PL.ProfessionContext.ApplyProfessionFrameUpdate(skillLineID, false)
-	end
-	if not synced then
-		PL.ProfessionContext.EnsureSkillLineLoaded(skillLineID)
-	end
+	PL.TradeSkillSession:LoadChildSkillLine(skillLineID)
 	self:InvalidateIndex()
-	if PL.ProfessionContext.ProfessionDataReady() then
+	if PL.TradeSkillSession:DataReady() then
 		self:Refresh()
 	end
 end
