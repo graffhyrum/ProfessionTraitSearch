@@ -1,11 +1,12 @@
 {
-  "name": "perk-lens",
+  "name": "profession-trait-search",
   "private": true,
   "version": "0.1.0",
   "scripts": {
     "changeset": "changeset",
     "version": "bun scripts/version.ts",
     "publish:tag": "bun scripts/publish-tag.ts",
+    "render-assets": "bun scripts/render-assets.ts",
     "prepare": "simple-git-hooks"
   },
   "simple-git-hooks": {
@@ -15,6 +16,7 @@
     "@changesets/cli": "^2.29.8",
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/bun": "^1.3.14",
     "simple-git-hooks": "^2.13.1"
   }

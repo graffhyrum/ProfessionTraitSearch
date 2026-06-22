@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Profession Trait Search icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#243845"/>
+      <stop offset="100%" stop-color="#121c24"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffe08a"/>
+      <stop offset="45%" stop-color="#d4a017"/>
+      <stop offset="100%" stop-color="#8a5a0a"/>
+    </linearGradient>
+    <linearGradient id="lens" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#b8f0ff"/>
+      <stop offset="100%" stop-color="#4aa3b8"/>
+    </linearGradient>
+    <radialGradient id="gemGlow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffd978" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#d4a017" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="72" fill="url(#bg)"/>
+
+  <!-- subtle map lines -->
+  <g stroke="#2f4654" stroke-width="2" fill="none" opacity="0.55">
+    <path d="M96 160h120M296 160h120M160 256h192M128 352h256"/>
+    <circle cx="256" cy="256" r="148" opacity="0.35"/>
+  </g>
+
+  <!-- outer ring -->
+  <circle cx="256" cy="256" r="168" fill="none" stroke="url(#gold)" stroke-width="14"/>
+  <g fill="#f0c44a">
+    <polygon points="256,72 264,88 248,88"/>
+    <polygon points="256,440 264,424 248,424"/>
+    <polygon points="72,256 88,264 88,248"/>
+    <polygon points="440,256 424,264 424,248"/>
+  </g>
+
+  <!-- spec tree -->
+  <g stroke="url(#gold)" stroke-width="5" fill="none" stroke-linecap="round">
+    <path d="M256 148v52"/>
+    <path d="M256 200 L176 248"/>
+    <path d="M256 200 L336 248"/>
+    <path d="M176 248 v36"/>
+    <path d="M336 248 v36"/>
+    <path d="M176 284 L148 318"/>
+    <path d="M176 284 L204 318"/>
+    <path d="M336 284 L308 318"/>
+    <path d="M336 284 L364 318"/>
+  </g>
+
+  <!-- top node: gem -->
+  <g transform="translate(256 132)">
+    <circle r="34" fill="#162029" stroke="url(#gold)" stroke-width="5"/>
+    <circle r="22" fill="url(#gemGlow)"/>
+    <polygon points="0,-16 12,0 0,16 -12,0" fill="#ffd978"/>
+    <polygon points="0,-8 6,0 0,8 -6,0" fill="#fff2b0"/>
+  </g>
+
+  <!-- left node: hammer -->
+  <g transform="translate(176 268)">
+    <circle r="30" fill="#162029" stroke="url(#gold)" stroke-width="5"/>
+    <rect x="-14" y="-4" width="22" height="8" rx="2" fill="#c9c2b8"/>
+    <rect x="4" y="-12" width="8" height="22" rx="2" fill="#8b6914"/>
+    <path d="M-10 8 h20 v6 h-20z" fill="#6a5330"/>
+  </g>
+
+  <!-- right node: mortar -->
+  <g transform="translate(336 268)">
+    <circle r="30" fill="#162029" stroke="url(#gold)" stroke-width="5"/>
+    <ellipse cx="0" cy="6" rx="14" ry="8" fill="#7a8a94"/>
+    <path d="M-10 0 Q0 -10 10 0" fill="none" stroke="#c9c2b8" stroke-width="4"/>
+    <rect x="-3" y="-16" width="6" height="14" rx="2" fill="#c9c2b8"/>
+  </g>
+
+  <!-- perk diamonds -->
+  <g fill="#f0c44a">
+    <polygon points="148,318 156,326 148,334 140,326"/>
+    <polygon points="204,318 212,326 204,334 196,326"/>
+    <polygon points="308,318 316,326 308,334 300,326"/>
+    <polygon points="364,318 372,326 364,334 356,326"/>
+  </g>
+
+  <!-- magnifying glass -->
+  <g transform="translate(318 292)">
+    <circle r="78" fill="none" stroke="url(#gold)" stroke-width="12"/>
+    <circle r="62" fill="url(#lens)" opacity="0.82"/>
+    <path d="M58 58 L98 98" stroke="url(#gold)" stroke-width="14" stroke-linecap="round"/>
+    <ellipse cx="-18" cy="-22" rx="18" ry="12" fill="#ffffff" opacity="0.55" transform="rotate(-25)"/>
+    <circle cx="0" cy="0" r="4" fill="#ffffff" opacity="0.35"/>
+  </g>
+</svg>
