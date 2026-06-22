@@ -1,11 +1,10 @@
-local PL = _G.PerkLens
+local PTS = _G.ProfessionTraitSearch
 
 local ProfessionsNavigator = {}
-PL.ProfessionsNavigator = ProfessionsNavigator
+PTS.ProfessionsNavigator = ProfessionsNavigator
 
 local pendingNav
 local navFrame
-local beforeNavigate
 
 local function getSpecTabID()
 	return ProfessionsFrame and ProfessionsFrame.specializationsTabID
@@ -58,7 +57,7 @@ local function applySpecNavigation(target)
 end
 
 local function isStandaloneNavigation()
-	return PL.Controller and PL.Controller:GetViewMode() == "standalone"
+	return PTS.Controller and PTS.Controller:GetViewMode() == "standalone"
 end
 
 local function applyPendingNav()
@@ -67,7 +66,7 @@ local function applyPendingNav()
 		return false
 	end
 
-	if not PL.TradeSkillSession:DataReady() then
+	if not PTS.TradeSkillSession:DataReady() then
 		return false
 	end
 
@@ -76,7 +75,7 @@ local function applyPendingNav()
 		return false
 	end
 
-	PL.TradeSkillSession:EnsureSpecTabSelected()
+	PTS.TradeSkillSession:EnsureSpecTabSelected()
 
 	if applySpecNavigation(target) then
 		pendingNav = nil
@@ -107,18 +106,10 @@ local function schedulePendingNav()
 	end)
 end
 
-function ProfessionsNavigator:SetBeforeNavigate(fn)
-	beforeNavigate = fn
-end
-
 function ProfessionsNavigator:Navigate(row)
-	local target = PL.SpecNavigation and PL.SpecNavigation.ResolveTarget(row)
+	local target = PTS.SpecNavigation and PTS.SpecNavigation.ResolveTarget(row)
 	if not target then
 		return
-	end
-
-	if beforeNavigate then
-		beforeNavigate(row, target)
 	end
 
 	if C_AddOns and C_AddOns.LoadAddOn and not C_AddOns.IsAddOnLoaded("Blizzard_Professions") then
@@ -130,7 +121,7 @@ function ProfessionsNavigator:Navigate(row)
 	end
 
 	pendingNav = target
-	PL.TradeSkillSession:OpenForSkillLine(target.skillLineID, {
+	PTS.TradeSkillSession:OpenForSkillLine(target.skillLineID, {
 		forceFull = isStandaloneNavigation(),
 		openSpecTab = true,
 	})

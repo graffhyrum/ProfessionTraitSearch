@@ -1,7 +1,7 @@
-local PL = _G.PerkLens
+local PTS = _G.ProfessionTraitSearch
 
 local MechanicTests = {}
-PL.MechanicTests = MechanicTests
+PTS.MechanicTests = MechanicTests
 
 local tests = {
 	{
@@ -26,7 +26,7 @@ end
 
 function MechanicTests:GetResult(id)
 	if id == "context_available" then
-		local ctx = PL.ProfessionContext.GetActiveContext()
+		local ctx = PTS.ProfessionContext.GetActiveContext()
 		local ok = ctx ~= nil and ctx.configID ~= nil
 		return {
 			passed = ok,
@@ -34,11 +34,11 @@ function MechanicTests:GetResult(id)
 		}
 	end
 	if id == "index_builds" then
-		local ctx = PL.ProfessionContext.GetActiveContext()
+		local ctx = PTS.ProfessionContext.GetActiveContext()
 		if not ctx then
 			return { passed = false, message = "No context" }
 		end
-		local rows = PL.SpecIndex.Build(ctx)
+		local rows = PTS.SpecIndex.Build(ctx)
 		local ok = #rows > 0
 		return {
 			passed = ok,
@@ -56,9 +56,9 @@ local MechanicLib = LibStub and LibStub("MechanicLib-1.0", true)
 if MechanicLib then
 	local version = "0.1.0"
 	if C_AddOns and C_AddOns.GetAddOnMetadata then
-		version = C_AddOns.GetAddOnMetadata("PerkLens", "Version") or version
+		version = C_AddOns.GetAddOnMetadata("ProfessionTraitSearch", "Version") or version
 	end
-	MechanicLib:Register("PerkLens", {
+	MechanicLib:Register("ProfessionTraitSearch", {
 		version = version,
 		tests = {
 			getAll = function()
