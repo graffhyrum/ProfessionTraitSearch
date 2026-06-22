@@ -1,6 +1,6 @@
 {
   "$schema": "https://mechanic.dev/schemas/libs.json",
-  "description": "Library configuration for NoMoreWorldQuests (Mechanic tooling; shipped copies live in libs/)",
+  "description": "Library configuration for ProfessionTraitSearch (Mechanic tooling; shipped copies live in libs/)",
   "mode": "include",
   "libraries": {
     "LibStub": "latest",

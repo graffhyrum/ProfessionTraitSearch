@@ -94,4 +94,7 @@ release TAG:
 publish-tag:
     bun run publish:tag
 
+package-local:
+    bun scripts/package-local.ts
+
 pre-release: check test

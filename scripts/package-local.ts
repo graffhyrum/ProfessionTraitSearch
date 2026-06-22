@@ -4,22 +4,17 @@ import { Glob } from "bun";
 import { join, relative } from "node:path";
 import { rm } from "node:fs/promises";
 
-const ADDON_NAME = "NoMoreWorldQuests";
+const ADDON_NAME = "ProfessionTraitSearch";
 const root = `${import.meta.dir}/..`;
 
 const INCLUDE_ROOTS = [
-  "NoMoreWorldQuests.toc",
+  "ProfessionTraitSearch.toc",
   "LICENSE",
   "libs",
   "core",
-  "surfaces",
-  "sync",
-  "active",
   "ui",
   "assets",
 ] as const;
-
-const EXCLUDE_PATHS = new Set(["assets/logo/logo-master.png"]);
 
 function normalizeRel(path: string): string {
   return path.replace(/\\/g, "/");
@@ -30,9 +25,6 @@ async function stageIncludeRoot(addonDir: string, item: string): Promise<void> {
   const srcFile = Bun.file(srcRoot);
 
   if (await srcFile.exists()) {
-    if (EXCLUDE_PATHS.has(item)) {
-      return;
-    }
     await Bun.write(join(addonDir, item), srcFile);
     return;
   }
@@ -42,10 +34,6 @@ async function stageIncludeRoot(addonDir: string, item: string): Promise<void> {
 
   for await (const relPath of glob.scan({ cwd: srcRoot, onlyFiles: true })) {
     const rel = normalizeRel(`${item}/${relPath}`);
-    if (EXCLUDE_PATHS.has(rel)) {
-      continue;
-    }
-
     staged = true;
     await Bun.write(join(addonDir, rel), Bun.file(join(srcRoot, relPath)));
   }
