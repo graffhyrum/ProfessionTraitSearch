@@ -1,4 +1,4 @@
-# PerkLens
+# Profession Trait Search
 
 WoW **retail** addon: searchable **specialization index** for profession spec trees.
 
@@ -32,7 +32,7 @@ UI seam — `DisplayName` and `PerkBadgeText` map row kinds to player-facing lab
 Presentation seam — frame-agnostic colors, tints, fonts, min heights, and path rank badge text for index rows.
 
 **ViewMode**:
-Controller surface for index context policy — `embedded` (Professions spec-tab overlay), `standalone` (`/pl` window), or `closed`. UI sets mode; `embedded` prefers active profession context when rebuilding the index.
+Controller surface for index context policy — `embedded` (Professions spec-tab overlay), `standalone` (`/pts` window), or `closed`. UI sets mode; `embedded` prefers active profession context when rebuilding the index.
 
 **Profession context**:
 Resolved scope for the **spec index** — `{ skillLineID, configID, professionName }` from `ProfessionContext` (`ResolveForIndex`, `GetActiveContext`, listing, **Knowledge**). Domain resolution only; no `C_TradeSkillUI` load/sync.
@@ -51,7 +51,7 @@ _Avoid in UI_: points (unless Blizzard does)
 ## Example dialogue
 
 > "Search for Multicraft in Midnight Mining specs."
-> → Open `/pl` or the **Specialization index** on the Professions **Specializations** page; type `Multicraft`; matching sub-specializations and perks appear with parent context.
+> → Open `/pts` or the **Specialization index** on the Professions **Specializations** page; type `Multicraft`; matching sub-specializations and perks appear with parent context.
 
 > "Show only major perks I haven't earned yet."
 > → Enable **Major perks only** + **Unearned only**.

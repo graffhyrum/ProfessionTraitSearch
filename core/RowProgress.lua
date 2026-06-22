@@ -1,7 +1,7 @@
-local PL = _G.PerkLens
+local PTS = _G.ProfessionTraitSearch
 
 local RowProgress = {}
-PL.RowProgress = RowProgress
+PTS.RowProgress = RowProgress
 
 function RowProgress.IsUnearned(row)
 	if not row then

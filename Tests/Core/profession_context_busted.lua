@@ -12,12 +12,12 @@ end
 local function withStubs(stubMap, fn)
 	local saved = {}
 	for key, replacement in pairs(stubMap) do
-		saved[key] = _G.PerkLens.ProfessionContext[key]
-		_G.PerkLens.ProfessionContext[key] = replacement
+		saved[key] = _G.ProfessionTraitSearch.ProfessionContext[key]
+		_G.ProfessionTraitSearch.ProfessionContext[key] = replacement
 	end
 	local ok, err = pcall(fn)
 	for key, original in pairs(saved) do
-		_G.PerkLens.ProfessionContext[key] = original
+		_G.ProfessionTraitSearch.ProfessionContext[key] = original
 	end
 	if not ok then
 		error(err)
@@ -99,7 +99,7 @@ describe("ProfessionContext.ResolveForIndex", function()
 	for i = 1, #cases do
 		local case = cases[i]
 		it(case.name, function()
-			local pl = load_addon.pl()
+			local PTS = load_addon.pts()
 			withStubs({
 				GetActiveContext = function()
 					return case.active
@@ -114,7 +114,7 @@ describe("ProfessionContext.ResolveForIndex", function()
 					return case.list
 				end,
 			}, function()
-				local resolved = pl.ProfessionContext.ResolveForIndex(case.charDB, case.preferActive)
+				local resolved = PTS.ProfessionContext.ResolveForIndex(case.charDB, case.preferActive)
 				if case.want == nil then
 					assert.is_nil(resolved)
 				else
@@ -126,7 +126,7 @@ describe("ProfessionContext.ResolveForIndex", function()
 	end
 
 	it("ignores saved skill line when profession was switched away", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		local active = ctx(2872, "Midnight Blacksmithing")
 		local stale = ctx(2871, "Midnight Alchemy")
 		withStubs({
@@ -149,7 +149,7 @@ describe("ProfessionContext.ResolveForIndex", function()
 				return skillLineID ~= 2871
 			end,
 		}, function()
-			local resolved = pl.ProfessionContext.ResolveForIndex({ lastSkillLineID = 2871 }, false)
+			local resolved = PTS.ProfessionContext.ResolveForIndex({ lastSkillLineID = 2871 }, false)
 			assert.are.equal(2872, resolved.skillLineID)
 		end)
 	end)
@@ -158,7 +158,7 @@ end)
 describe("Controller ViewMode", function()
 	before_each(function()
 		load_addon.reset()
-		_G.PerkLensDB = nil
+		_G.ProfessionTraitSearchDB = nil
 		_G.UnitGUID = function()
 			return "test-guid"
 		end
@@ -166,7 +166,7 @@ describe("Controller ViewMode", function()
 	end)
 
 	it("embedded view mode prefers active profession context", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		local active = ctx(2001, "Active")
 		local saved = ctx(2002, "Saved")
 		withStubs({
@@ -183,15 +183,15 @@ describe("Controller ViewMode", function()
 				return { saved }
 			end,
 		}, function()
-			pl.Controller:SetViewMode("embedded")
-			pl.Controller:GetCharDB().lastSkillLineID = 2002
-			pl.Controller:RebuildIndex()
-			assert.are.equal(2001, pl.Controller:GetContext().skillLineID)
+			PTS.Controller:SetViewMode("embedded")
+			PTS.Controller:GetCharDB().lastSkillLineID = 2002
+			PTS.Controller:RebuildIndex()
+			assert.are.equal(2001, PTS.Controller:GetContext().skillLineID)
 		end)
 	end)
 
 	it("closed view mode prefers saved skill line over active", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		local active = ctx(2001, "Active")
 		local saved = ctx(2002, "Saved")
 		withStubs({
@@ -208,22 +208,22 @@ describe("Controller ViewMode", function()
 				return { saved }
 			end,
 		}, function()
-			pl.Controller:SetViewMode("closed")
-			pl.Controller:GetCharDB().lastSkillLineID = 2002
-			pl.Controller:RebuildIndex()
-			assert.are.equal(2002, pl.Controller:GetContext().skillLineID)
+			PTS.Controller:SetViewMode("closed")
+			PTS.Controller:GetCharDB().lastSkillLineID = 2002
+			PTS.Controller:RebuildIndex()
+			assert.are.equal(2002, PTS.Controller:GetContext().skillLineID)
 		end)
 	end)
 
 	it("does not call ProfessionsHook for context policy", function()
-		local pl = load_addon.pl()
-		pl.ProfessionsHook = {
+		local PTS = load_addon.pts()
+		PTS.ProfessionsHook = {
 			IsIndexMode = function()
 				error("core must not call ProfessionsHook:IsIndexMode")
 			end,
 		}
-		pl.Controller:SetViewMode("embedded")
-		pl.Controller:RebuildIndex()
+		PTS.Controller:SetViewMode("embedded")
+		PTS.Controller:RebuildIndex()
 	end)
 end)
 
@@ -260,7 +260,7 @@ describe("ProfessionContext.ListSpecSkillLines", function()
 	end
 
 	it("orders professions by expansion newest first (lower sourceCounter is newer)", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		stubProfessionAPIs({ 2881, 2882, 2883 }, {
 			[2881] = {
 				professionName = "Dragon Isles Mining",
@@ -279,7 +279,7 @@ describe("ProfessionContext.ListSpecSkillLines", function()
 			},
 		}, { [1] = 186 })
 
-		local list = pl.ProfessionContext.ListSpecSkillLines()
+		local list = PTS.ProfessionContext.ListSpecSkillLines()
 		assert.are.equal(3, #list)
 		assert.are.equal(2883, list[1].skillLineID)
 		assert.are.equal(2882, list[2].skillLineID)
@@ -287,7 +287,7 @@ describe("ProfessionContext.ListSpecSkillLines", function()
 	end)
 
 	it("orders mixed professions newest expansion first like the dropdown", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		stubProfessionAPIs({ 2801, 2811, 2812, 2910, 2911 }, {
 			[2801] = {
 				professionName = "Dragon Isles Engineering",
@@ -316,7 +316,7 @@ describe("ProfessionContext.ListSpecSkillLines", function()
 			},
 		}, { [1] = 186, [2] = 202 })
 
-		local list = pl.ProfessionContext.ListSpecSkillLines()
+		local list = PTS.ProfessionContext.ListSpecSkillLines()
 		assert.are.equal(5, #list)
 		assert.are.equal(2910, list[1].skillLineID)
 		assert.are.equal(2911, list[2].skillLineID)
@@ -326,7 +326,7 @@ describe("ProfessionContext.ListSpecSkillLines", function()
 	end)
 
 	it("orders by API list position when sourceCounter is zero", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		stubProfessionAPIs({ 2881, 2882, 2883 }, {
 			[2881] = {
 				professionName = "Dragon Isles Mining",
@@ -345,14 +345,14 @@ describe("ProfessionContext.ListSpecSkillLines", function()
 			},
 		}, { [1] = 186 })
 
-		local list = pl.ProfessionContext.ListSpecSkillLines()
+		local list = PTS.ProfessionContext.ListSpecSkillLines()
 		assert.are.equal(2883, list[1].skillLineID)
 		assert.are.equal(2882, list[2].skillLineID)
 		assert.are.equal(2881, list[3].skillLineID)
 	end)
 
 	it("excludes skill lines from switched-away professions", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		stubProfessionAPIs({ 2883, 2871, 2872 }, {
 			[2883] = {
 				professionName = "Midnight Mining",
@@ -371,7 +371,7 @@ describe("ProfessionContext.ListSpecSkillLines", function()
 			},
 		}, { [1] = 186, [2] = 164 })
 
-		local list = pl.ProfessionContext.ListSpecSkillLines()
+		local list = PTS.ProfessionContext.ListSpecSkillLines()
 		assert.are.equal(2, #list)
 		assert.are.equal(2883, list[1].skillLineID)
 		assert.are.equal(2872, list[2].skillLineID)
@@ -381,7 +381,7 @@ end)
 describe("Controller standalone profession switch", function()
 	before_each(function()
 		load_addon.reset()
-		_G.PerkLensDB = nil
+		_G.ProfessionTraitSearchDB = nil
 		_G.UnitGUID = function()
 			return "test-guid"
 		end
@@ -389,7 +389,7 @@ describe("Controller standalone profession switch", function()
 	end)
 
 	it("SetSkillLine updates context in standalone view mode", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		local mining = ctx(2883, "Midnight Mining")
 		local alchemy = ctx(2871, "Midnight Alchemy")
 		withStubs({
@@ -412,17 +412,17 @@ describe("Controller standalone profession switch", function()
 				return { mining, alchemy }
 			end,
 		}, function()
-			pl.Controller:SetViewMode("standalone")
-			pl.Controller:RebuildIndex()
-			assert.are.equal(2883, pl.Controller:GetContext().skillLineID)
+			PTS.Controller:SetViewMode("standalone")
+			PTS.Controller:RebuildIndex()
+			assert.are.equal(2883, PTS.Controller:GetContext().skillLineID)
 
-			pl.Controller:SetSkillLine(2871)
-			assert.are.equal(2871, pl.Controller:GetContext().skillLineID)
+			PTS.Controller:SetSkillLine(2871)
+			assert.are.equal(2871, PTS.Controller:GetContext().skillLineID)
 		end)
 	end)
 
 	it("switches expansion specs within the same parent profession", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		local activeChild = 2911
 		local configs = { [2911] = 111, [2801] = 101 }
 		local tabs = {
@@ -489,15 +489,15 @@ describe("Controller standalone profession switch", function()
 			return ""
 		end
 
-		pl.Controller:SetViewMode("standalone")
-		pl.Controller:RebuildIndex()
-		assert.are.equal(2911, pl.Controller:GetContext().skillLineID)
-		assert.are.equal("Midnight Eng Spec", pl.Controller:GetVisibleRows()[1].name)
+		PTS.Controller:SetViewMode("standalone")
+		PTS.Controller:RebuildIndex()
+		assert.are.equal(2911, PTS.Controller:GetContext().skillLineID)
+		assert.are.equal("Midnight Eng Spec", PTS.Controller:GetVisibleRows()[1].name)
 
-		pl.Controller:SetSkillLine(2801)
-		assert.are.equal(2801, pl.Controller:GetCharDB().lastSkillLineID)
-		assert.are.equal(2801, pl.Controller:GetContext().skillLineID)
-		assert.are.equal("Dragon Eng Spec", pl.Controller:GetVisibleRows()[1].name)
+		PTS.Controller:SetSkillLine(2801)
+		assert.are.equal(2801, PTS.Controller:GetCharDB().lastSkillLineID)
+		assert.are.equal(2801, PTS.Controller:GetContext().skillLineID)
+		assert.are.equal("Dragon Eng Spec", PTS.Controller:GetVisibleRows()[1].name)
 	end)
 
 	it("defers expansion switch until TRADE_SKILL_LIST_UPDATE", function()
@@ -517,13 +517,13 @@ describe("Controller standalone profession switch", function()
 		end
 
 		load_addon.reset()
-		_G.PerkLensDB = nil
+		_G.ProfessionTraitSearchDB = nil
 		_G.UnitGUID = function()
 			return "test-guid"
 		end
 		load_addon.load_core()
 
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		local activeChild = 2911
 		local dataReady = true
 		local configs = { [2911] = 111, [2801] = 101 }
@@ -606,27 +606,27 @@ describe("Controller standalone profession switch", function()
 			return ""
 		end
 
-		pl.Controller:SetViewMode("standalone")
-		pl.Controller:SetListening(true)
-		pl.Controller:RebuildIndex()
-		assert.are.equal("Midnight Eng Spec", pl.Controller:GetVisibleRows()[1].name)
+		PTS.Controller:SetViewMode("standalone")
+		PTS.Controller:SetListening(true)
+		PTS.Controller:RebuildIndex()
+		assert.are.equal("Midnight Eng Spec", PTS.Controller:GetVisibleRows()[1].name)
 
-		pl.Controller:SetSkillLine(2801)
+		PTS.Controller:SetSkillLine(2801)
 		assert.is_true(professionSelected)
-		assert.are.equal(2801, pl.Controller:GetCharDB().lastSkillLineID)
-		assert.is_nil(pl.Controller:GetContext())
-		assert.are.equal(0, #pl.Controller:GetVisibleRows())
+		assert.are.equal(2801, PTS.Controller:GetCharDB().lastSkillLineID)
+		assert.is_nil(PTS.Controller:GetContext())
+		assert.are.equal(0, #PTS.Controller:GetVisibleRows())
 
 		dataReady = true
 		assert.is_true(eventHandler ~= nil)
 		eventHandler("TRADE_SKILL_LIST_UPDATE")
 
-		assert.are.equal(2801, pl.Controller:GetContext().skillLineID)
-		assert.are.equal("Dragon Eng Spec", pl.Controller:GetVisibleRows()[1].name)
+		assert.are.equal(2801, PTS.Controller:GetContext().skillLineID)
+		assert.are.equal("Dragon Eng Spec", PTS.Controller:GetVisibleRows()[1].name)
 	end)
 
 	it("standalone expansion switch resolves index after child skill line load", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		local activeChild = 2911
 		local configs = { [2911] = 111, [2801] = 101 }
 		local tabs = {
@@ -697,10 +697,10 @@ describe("Controller standalone profession switch", function()
 			return ""
 		end
 
-		pl.Controller:SetViewMode("standalone")
-		pl.Controller:RebuildIndex()
-		pl.Controller:SetSkillLine(2801)
+		PTS.Controller:SetViewMode("standalone")
+		PTS.Controller:RebuildIndex()
+		PTS.Controller:SetSkillLine(2801)
 
-		assert.are.equal(2801, pl.Controller:GetContext().skillLineID)
+		assert.are.equal(2801, PTS.Controller:GetContext().skillLineID)
 	end)
 end)

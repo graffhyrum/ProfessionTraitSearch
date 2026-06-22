@@ -1,7 +1,7 @@
-local PL = _G.PerkLens
+local PTS = _G.ProfessionTraitSearch
 
 local SpecSearch = {}
-PL.SpecSearch = SpecSearch
+PTS.SpecSearch = SpecSearch
 
 local function lower(s)
 	return (s or ""):lower()
@@ -74,7 +74,7 @@ function SpecSearch.Filter(rows, options)
 		if majorOnly and (row.kind ~= "perk" or not row.isMajorPerk) then
 			ok = false
 		end
-		if ok and unearnedOnly and not PL.RowProgress.IsUnearned(row) then
+		if ok and unearnedOnly and not PTS.RowProgress.IsUnearned(row) then
 			ok = false
 		end
 		if ok and query ~= "" and not rowMatches(row, query) then

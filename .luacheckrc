@@ -10,10 +10,10 @@ globals = {
 	"GetRealmName",
 	"UIParent",
 	"DEFAULT_CHAT_FRAME",
-	"SLASH_PERKLENS1",
-	"SLASH_PERKLENS2",
-	"SLASH_PL1",
-	"SLASH_PL2",
+	"SLASH_PROFESSIONTRAITSEARCH1",
+	"SLASH_PROFESSIONTRAITSEARCH2",
+	"SLASH_PTS1",
+	"SLASH_PTS2",
 	"SlashCmdList",
 	"hash_SlashCmdList",
 	"RegisterNewSlashCommand",
@@ -21,7 +21,8 @@ globals = {
 	"ProfessionsFrame",
 	"EventRegistry",
 	"TalentUtil",
-	"PerkLens",
+	"ProfessionTraitSearch",
+	"ProfessionTraitSearchDB",
 	"PerkLensDB",
 	"SpecTraitLensDB",
 	"strtrim",
@@ -49,6 +50,8 @@ read_globals = {
 	"C_TradeSkillUI",
 	"Enum",
 	"Professions",
+	"GREEN_FONT_COLOR",
+	"GRAY_FONT_COLOR",
 }
 
 exclude_files = {

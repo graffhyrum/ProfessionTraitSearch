@@ -11,7 +11,7 @@ describe("TradeSkillSession", function()
 describe("SyncProfessionFrame", function()
 
 	it("syncs cached recipe filters after a successful frame update", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		local activeChild = 2881
 		local setProfessionInfoCalls = 0
 
@@ -48,7 +48,7 @@ describe("SyncProfessionFrame", function()
 			end,
 		}
 
-		local ok = pl.TradeSkillSession:SyncProfessionFrame(2883, { openSpecTab = false })
+		local ok = PTS.TradeSkillSession:SyncProfessionFrame(2883, { openSpecTab = false })
 
 		assert.is_true(ok)
 		assert.are.equal(1, setProfessionInfoCalls)
@@ -60,7 +60,7 @@ end)
 describe("LoadChildSkillLine", function()
 
 	it("switches child skill line within the same parent profession", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		local activeChild = 2881
 		local professionSelected = false
 
@@ -86,7 +86,7 @@ describe("LoadChildSkillLine", function()
 			end,
 		}
 
-		local ok = pl.TradeSkillSession:LoadChildSkillLine(2883)
+		local ok = PTS.TradeSkillSession:LoadChildSkillLine(2883)
 
 		assert.is_true(ok)
 		assert.is_true(professionSelected)
@@ -94,7 +94,7 @@ describe("LoadChildSkillLine", function()
 	end)
 
 	it("returns false when already on target child skill line", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 
 		_G.C_TradeSkillUI = {
 			GetChildProfessionInfo = function()
@@ -102,14 +102,14 @@ describe("LoadChildSkillLine", function()
 			end,
 		}
 
-		assert.is_false(pl.TradeSkillSession:LoadChildSkillLine(2881))
+		assert.is_false(PTS.TradeSkillSession:LoadChildSkillLine(2881))
 	end)
 end)
 
 describe("OpenForSkillLine", function()
 
 	it("opens parent trade skill for a different profession", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		local openTradeSkillCalls = {}
 		local openRecipeResponseCalls = {}
 		local childSkillLineID = 2881
@@ -141,7 +141,7 @@ describe("OpenForSkillLine", function()
 			end,
 		}
 
-		pl.TradeSkillSession:OpenForSkillLine(2883, { forceFull = false, openSpecTab = true })
+		PTS.TradeSkillSession:OpenForSkillLine(2883, { forceFull = false, openSpecTab = true })
 
 		assert.are.equal(1, #openRecipeResponseCalls)
 		assert.are.equal(2883, openRecipeResponseCalls[1].skillLineID)
@@ -151,7 +151,7 @@ describe("OpenForSkillLine", function()
 	end)
 
 	it("forceFull syncs frame for same parent profession", function()
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		local activeChild = 2881
 		local setProfessionInfoCalls = 0
 
@@ -189,7 +189,7 @@ describe("OpenForSkillLine", function()
 			end,
 		}
 
-		pl.TradeSkillSession:OpenForSkillLine(2883, { forceFull = true, openSpecTab = true })
+		PTS.TradeSkillSession:OpenForSkillLine(2883, { forceFull = true, openSpecTab = true })
 
 		assert.are.equal(2883, activeChild)
 		assert.are.equal(1, setProfessionInfoCalls)

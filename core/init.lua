@@ -1,1 +1,1 @@
-_G.PerkLens = _G.PerkLens or {}
+_G.ProfessionTraitSearch = _G.ProfessionTraitSearch or {}

@@ -1,7 +1,7 @@
-local PL = _G.PerkLens
+local PTS = _G.ProfessionTraitSearch
 
 local ProfessionContext = {}
-PL.ProfessionContext = ProfessionContext
+PTS.ProfessionContext = ProfessionContext
 
 local function hasSpec(skillLineID)
 	return skillLineID and C_ProfSpecs.SkillLineHasSpecialization(skillLineID)
@@ -132,16 +132,15 @@ end
 function ProfessionContext.ResolveForIndex(charDB, preferActive)
 	local resolved
 	local savedSkillLineID = charDB and charDB.lastSkillLineID
+	local savedTrained = savedSkillLineID and ProfessionContext.IsTrainedSkillLine(savedSkillLineID)
 	if preferActive then
 		resolved = ProfessionContext.GetActiveContext()
 	end
-	if not resolved and savedSkillLineID then
-		if ProfessionContext.IsTrainedSkillLine(savedSkillLineID) then
-			PL.TradeSkillSession:LoadChildSkillLine(savedSkillLineID)
-			resolved = ProfessionContext.GetContextForSkillLine(savedSkillLineID)
-		end
+	if not resolved and savedSkillLineID and savedTrained then
+		PTS.TradeSkillSession:LoadChildSkillLine(savedSkillLineID)
+		resolved = ProfessionContext.GetContextForSkillLine(savedSkillLineID)
 	end
-	if not resolved and (preferActive or not savedSkillLineID) then
+	if not resolved and (preferActive or not savedSkillLineID or not savedTrained) then
 		resolved = ProfessionContext.GetActiveContext()
 	end
 	if not resolved and not savedSkillLineID then

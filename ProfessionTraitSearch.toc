@@ -1,8 +1,8 @@
 ## Interface: 120007
 
-## Title: PerkLens
+## Title: Profession Trait Search
 
-## Notes: Searchable profession specialization index.
+## Notes: Searchable profession specialization trait browser.
 
 ## Author: graffhyrum
 
@@ -10,9 +10,9 @@
 
 ## Version: 0.1.0
 
-## SavedVariables: PerkLensDB
+## SavedVariables: ProfessionTraitSearchDB
 
-## IconTexture: Interface\Icons\INV_Misc_Book_09
+## IconTexture: Interface\AddOns\ProfessionTraitSearch\assets\pts-icon-512.png
 
 ## OptionalDeps: !Mechanic
 
@@ -40,6 +40,8 @@ core\RankUtil.lua
 
 core\RowProgress.lua
 
+core\RowAvailability.lua
+
 core\RowDisplay.lua
 
 core\RowPresentation.lua
@@ -47,6 +49,8 @@ core\RowPresentation.lua
 core\SpecIndex.lua
 
 core\SpecSearch.lua
+
+core\SpecFold.lua
 
 core\SpecNavigation.lua
 
@@ -67,4 +71,3 @@ ui\Slash.lua
 ui\MechanicTests.lua
 
 core\Bootstrap.lua
-

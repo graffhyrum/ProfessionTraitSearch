@@ -1,6 +1,6 @@
 local addonName = ...
-local PL = _G.PerkLens
-if not PL or not PL.Controller or not PL.SpecBrowser then
+local PTS = _G.ProfessionTraitSearch
+if not PTS or not PTS.Controller or not PTS.SpecBrowser then
 	return
 end
 
@@ -10,8 +10,8 @@ frame:SetScript("OnEvent", function(_, event, name)
 	if event ~= "ADDON_LOADED" or name ~= addonName then
 		return
 	end
-	PL.Controller:ApplyFromSaved()
-	PL.MinimapButton:Init()
-	PL.Slash:Init()
-	PL.ProfessionsHook:Init()
+	PTS.Controller:ApplyFromSaved()
+	PTS.MinimapButton:Init()
+	PTS.Slash:Init()
+	PTS.ProfessionsHook:Init()
 end)

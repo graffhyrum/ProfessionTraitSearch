@@ -1,7 +1,7 @@
-local PL = _G.PerkLens
+local PTS = _G.ProfessionTraitSearch
 
 local RowDisplay = {}
-PL.RowDisplay = RowDisplay
+PTS.RowDisplay = RowDisplay
 
 -- Player-facing fallbacks when Blizzard provides no name (never tab/path/trait).
 local FALLBACK_NAME = {
@@ -33,7 +33,7 @@ function RowDisplay.PerkBadgeParts(row)
 	if row.unlockRank then
 		parts[#parts + 1] = "Rank " .. row.unlockRank
 	end
-	if PL.RowProgress.IsEarned(row) then
+	if PTS.RowProgress.IsEarned(row) then
 		parts[#parts + 1] = "Earned"
 	end
 	return parts

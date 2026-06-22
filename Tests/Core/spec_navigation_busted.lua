@@ -9,8 +9,8 @@ describe("SpecNavigation", function()
 	end)
 
 	it("resolves tab row without pathID", function()
-		local pl = load_addon.pl()
-		local target = pl.SpecNavigation.ResolveTarget({
+		local PTS = load_addon.pts()
+		local target = PTS.SpecNavigation.ResolveTarget({
 			kind = "tab",
 			skillLineID = 2881,
 			tabTreeID = 100,
@@ -22,8 +22,8 @@ describe("SpecNavigation", function()
 	end)
 
 	it("resolves path row with pathID", function()
-		local pl = load_addon.pl()
-		local target = pl.SpecNavigation.ResolveTarget({
+		local PTS = load_addon.pts()
+		local target = PTS.SpecNavigation.ResolveTarget({
 			kind = "path",
 			skillLineID = 2881,
 			tabTreeID = 100,
@@ -33,8 +33,8 @@ describe("SpecNavigation", function()
 	end)
 
 	it("resolves perk row using parent pathID", function()
-		local pl = load_addon.pl()
-		local target = pl.SpecNavigation.ResolveTarget({
+		local PTS = load_addon.pts()
+		local target = PTS.SpecNavigation.ResolveTarget({
 			kind = "perk",
 			skillLineID = 2881,
 			tabTreeID = 100,
@@ -45,9 +45,9 @@ describe("SpecNavigation", function()
 	end)
 
 	it("returns nil when navigation IDs missing", function()
-		local pl = load_addon.pl()
-		assert.is_nil(pl.SpecNavigation.ResolveTarget({ kind = "path", pathID = 301 }))
-		assert.is_nil(pl.SpecNavigation.ResolveTarget(nil))
+		local PTS = load_addon.pts()
+		assert.is_nil(PTS.SpecNavigation.ResolveTarget({ kind = "path", pathID = 301 }))
+		assert.is_nil(PTS.SpecNavigation.ResolveTarget(nil))
 	end)
 end)
 
@@ -58,9 +58,9 @@ describe("SpecIndex navigation fields", function()
 	end)
 
 	it("adds skillLineID and tabTreeID to all rows", function()
-		local pl = load_addon.pl()
-		local ctx = pl.ProfessionContext.GetContextForSkillLine(2881)
-		local rows = pl.SpecIndex.Build(ctx)
+		local PTS = load_addon.pts()
+		local ctx = PTS.ProfessionContext.GetContextForSkillLine(2881)
+		local rows = PTS.SpecIndex.Build(ctx)
 		for i = 1, #rows do
 			local row = rows[i]
 			assert.are.equal(2881, row.skillLineID, row.rowKey)

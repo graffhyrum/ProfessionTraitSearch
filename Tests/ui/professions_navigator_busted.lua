@@ -6,11 +6,11 @@ describe("ProfessionsNavigator navigation seam", function()
 		load_addon.reset()
 		load_addon.load("core/init.lua")
 		load_addon.load("core/SpecNavigation.lua")
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 		local recorded = {}
 		local testNav = {
 			Navigate = function(_, row)
-				recorded[#recorded + 1] = pl.SpecNavigation.ResolveTarget(row)
+				recorded[#recorded + 1] = PTS.SpecNavigation.ResolveTarget(row)
 			end,
 		}
 		testNav:Navigate({
@@ -167,8 +167,8 @@ describe("ProfessionsNavigator.Navigate", function()
 
 	it("uses Blizzard deferred open for a different profession", function()
 		baseProfessionID = 999
-		local pl = load_addon.pl()
-		pl.ProfessionsNavigator:Navigate({
+		local PTS = load_addon.pts()
+		PTS.ProfessionsNavigator:Navigate({
 			kind = "tab",
 			skillLineID = 2883,
 			tabTreeID = 100,
@@ -184,8 +184,8 @@ describe("ProfessionsNavigator.Navigate", function()
 	end)
 
 	it("selects spec tab after profession switch completes", function()
-		local pl = load_addon.pl()
-		pl.ProfessionsNavigator:Navigate({
+		local PTS = load_addon.pts()
+		PTS.ProfessionsNavigator:Navigate({
 			kind = "tab",
 			skillLineID = 2883,
 			tabTreeID = 100,
@@ -211,9 +211,9 @@ describe("ProfessionsNavigator.Navigate", function()
 	it("switches expansion within the same parent profession", function()
 		childSkillLineID = 2881
 		baseProfessionID = 186
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 
-		pl.ProfessionsNavigator:Navigate({
+		PTS.ProfessionsNavigator:Navigate({
 			kind = "tab",
 			skillLineID = 2883,
 			tabTreeID = 100,
@@ -229,9 +229,9 @@ describe("ProfessionsNavigator.Navigate", function()
 	it("navigates immediately when frame is shown for same profession", function()
 		childSkillLineID = 2881
 		_G.ProfessionsFrame = makeProfessionsFrame(2881, true)
-		local pl = load_addon.pl()
+		local PTS = load_addon.pts()
 
-		pl.ProfessionsNavigator:Navigate({
+		PTS.ProfessionsNavigator:Navigate({
 			kind = "tab",
 			skillLineID = 2881,
 			tabTreeID = 100,
@@ -247,11 +247,11 @@ describe("ProfessionsNavigator.Navigate", function()
 		childSkillLineID = 2881
 		baseProfessionID = 186
 		load_addon.load("core/TradeSkillSession.lua")
-		load_addon.load("core/Controller.lua", "PerkLens")
-		local pl = load_addon.pl()
-		pl.Controller:SetViewMode("standalone")
+		load_addon.load("core/Controller.lua", "ProfessionTraitSearch")
+		local PTS = load_addon.pts()
+		PTS.Controller:SetViewMode("standalone")
 
-		pl.ProfessionsNavigator:Navigate({
+		PTS.ProfessionsNavigator:Navigate({
 			kind = "tab",
 			skillLineID = 2883,
 			tabTreeID = 100,

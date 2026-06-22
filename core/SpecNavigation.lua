@@ -1,7 +1,7 @@
-local PL = _G.PerkLens
+local PTS = _G.ProfessionTraitSearch
 
 local SpecNavigation = {}
-PL.SpecNavigation = SpecNavigation
+PTS.SpecNavigation = SpecNavigation
 
 function SpecNavigation.ResolveTarget(row)
 	if not row or not row.kind or not row.skillLineID or not row.tabTreeID then

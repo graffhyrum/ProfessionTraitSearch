@@ -1,7 +1,7 @@
-local PL = _G.PerkLens
+local PTS = _G.ProfessionTraitSearch
 
 local TradeSkillSession = {}
-PL.TradeSkillSession = TradeSkillSession
+PTS.TradeSkillSession = TradeSkillSession
 
 local function getChildSkillLineID()
 	local child = C_TradeSkillUI and C_TradeSkillUI.GetChildProfessionInfo and C_TradeSkillUI.GetChildProfessionInfo()

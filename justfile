@@ -1,15 +1,15 @@
-# PerkLens — dev workflows (Mechanic + Changesets)
+# Profession Trait Search — dev workflows (Mechanic + Changesets)
 # Run `just --list` for all recipes.
 
 set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
-addon := "PerkLens"
+addon := "ProfessionTraitSearch"
 root := justfile_directory()
 root_json := replace(root, "\\", "/")
 mech_json := '{\""addon\"":\""' + addon + '\""}'
 mech_json_coverage := '{\""addon\"":\""' + addon + '\"",\""coverage\"":true}'
 
-export PL_ROOT := root_json
+export PTS_ROOT := root_json
 
 default:
     @just --list
@@ -82,6 +82,10 @@ version:
 
 sync-toc:
     bun scripts/sync-toc-version.ts
+
+render-assets:
+    bun install
+    bun run render-assets
 
 release TAG:
     git tag {{TAG}}

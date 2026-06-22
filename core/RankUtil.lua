@@ -1,7 +1,7 @@
-local PL = _G.PerkLens
+local PTS = _G.ProfessionTraitSearch
 
 local RankUtil = {}
-PL.RankUtil = RankUtil
+PTS.RankUtil = RankUtil
 
 function RankUtil.GetDisplayRanks(configID, nodeID, nodeInfo)
 	if not nodeInfo then

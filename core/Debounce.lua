@@ -1,7 +1,7 @@
-local PL = _G.PerkLens
+local PTS = _G.ProfessionTraitSearch
 
 local Debounce = {}
-PL.Debounce = Debounce
+PTS.Debounce = Debounce
 
 local pending = {}
 

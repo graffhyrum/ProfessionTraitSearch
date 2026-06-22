@@ -1,6 +1,6 @@
 # Agent Instructions
 
-Instructions for AI coding agents working on **PerkLens** (SpecTraitLens) — a WoW retail addon.
+Instructions for AI coding agents working on **Profession Trait Search** — a WoW retail addon.
 
 ## Non-Interactive Shell Commands
 
@@ -10,7 +10,7 @@ Instructions for AI coding agents working on **PerkLens** (SpecTraitLens) — a 
 
 ### Issue tracker
 
-GitHub Issues on `graffhyrum/SpecTraitLens` via `gh` CLI; external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
+GitHub Issues on `graffhyrum/ProfessionTraitSearch` via `gh` CLI; external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
