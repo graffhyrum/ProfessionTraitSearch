@@ -25,6 +25,7 @@ ignore:
   - package.json
   - package-lock.json
   - bun.lock
+  - commitlint.config.mjs
   - "*.md"
   - "!libs/README.md"
   - "!libs/THIRD_PARTY_NOTICES.md"
