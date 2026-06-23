@@ -2,7 +2,7 @@
 
 const root = `${import.meta.dir}/..`;
 const TOC = `${root}/ProfessionTraitSearch.toc`;
-const CF_SITE = "https://wow.curseforge.com";
+const WOW_GAME_ID = 432;
 const SEARCH = "Profession Trait Search";
 
 function apiToken(): string {
@@ -14,8 +14,8 @@ function apiToken(): string {
   return key;
 }
 
-async function cfFetch(path: string, init?: RequestInit): Promise<Response> {
-  return fetch(`${CF_SITE}${path}`, {
+async function cfFetch(url: string, init?: RequestInit): Promise<Response> {
+  return fetch(url, {
     ...init,
     headers: {
       Accept: "application/json",
@@ -26,14 +26,16 @@ async function cfFetch(path: string, init?: RequestInit): Promise<Response> {
 }
 
 async function searchProject(): Promise<number | null> {
-  const url = `/api/game/mods/search?searchFilter=${encodeURIComponent(SEARCH)}&pageSize=25`;
+  const url = `https://api.curseforge.com/v1/mods/search?gameId=${WOW_GAME_ID}&searchFilter=${encodeURIComponent(SEARCH)}&pageSize=25`;
   const res = await cfFetch(url);
   if (!res.ok) {
     console.error(`ensure-curseforge-project: search failed (${res.status})`);
     process.exit(1);
   }
-  const body = (await res.json()) as Array<{ id: number; name: string; slug: string }> | { data?: Array<{ id: number; name: string; slug: string }> };
-  const mods = Array.isArray(body) ? body : (body.data ?? []);
+  const body = (await res.json()) as {
+    data?: Array<{ id: number; name: string; slug: string }>;
+  };
+  const mods = body.data ?? [];
   const exact = mods.find(
     (mod) => mod.name.toLowerCase() === SEARCH.toLowerCase() || mod.slug === "profession-trait-search",
   );
