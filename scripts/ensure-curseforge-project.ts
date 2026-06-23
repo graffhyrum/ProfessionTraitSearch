@@ -2,10 +2,10 @@
 
 const root = `${import.meta.dir}/..`;
 const TOC = `${root}/ProfessionTraitSearch.toc`;
-const GAME_ID = 1;
+const CF_SITE = "https://wow.curseforge.com";
 const SEARCH = "Profession Trait Search";
 
-function apiKey(): string {
+function apiToken(): string {
   const key = process.env.CF_API_KEY ?? process.env.CURSEFORGE_API_KEY;
   if (!key) {
     console.error("ensure-curseforge-project: CF_API_KEY or CURSEFORGE_API_KEY required");
@@ -15,30 +15,29 @@ function apiKey(): string {
 }
 
 async function cfFetch(path: string, init?: RequestInit): Promise<Response> {
-  return fetch(`https://api.curseforge.com/v1${path}`, {
+  return fetch(`${CF_SITE}${path}`, {
     ...init,
     headers: {
       Accept: "application/json",
-      "x-api-key": apiKey(),
+      "x-api-token": apiToken(),
       ...(init?.headers ?? {}),
     },
   });
 }
 
 async function searchProject(): Promise<number | null> {
-  const url = `/mods/search?gameId=${GAME_ID}&searchFilter=${encodeURIComponent(SEARCH)}&pageSize=25`;
+  const url = `/api/game/mods/search?searchFilter=${encodeURIComponent(SEARCH)}&pageSize=25`;
   const res = await cfFetch(url);
   if (!res.ok) {
     console.error(`ensure-curseforge-project: search failed (${res.status})`);
     process.exit(1);
   }
-  const body = (await res.json()) as {
-    data?: Array<{ id: number; name: string; slug: string }>;
-  };
-  const exact = body.data?.find(
+  const body = (await res.json()) as Array<{ id: number; name: string; slug: string }> | { data?: Array<{ id: number; name: string; slug: string }> };
+  const mods = Array.isArray(body) ? body : (body.data ?? []);
+  const exact = mods.find(
     (mod) => mod.name.toLowerCase() === SEARCH.toLowerCase() || mod.slug === "profession-trait-search",
   );
-  return exact?.id ?? body.data?.[0]?.id ?? null;
+  return exact?.id ?? mods[0]?.id ?? null;
 }
 
 async function readTocProjectId(): Promise<number | null> {
@@ -71,7 +70,7 @@ export async function ensureCurseForgeProjectId(): Promise<number> {
   const id = await searchProject();
   if (!id) {
     console.error(
-      "ensure-curseforge-project: no CurseForge project found — create one at https://www.curseforge.com/wow/addons/create and re-run",
+      "ensure-curseforge-project: no CurseForge project found — create one at https://authors.curseforge.com/#/projects/create/432 and re-run",
     );
     process.exit(1);
   }
