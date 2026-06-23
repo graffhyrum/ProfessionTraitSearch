@@ -1,0 +1,36 @@
+name: Resolve CurseForge Project
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    env:
+      CF_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      - name: Resolve CurseForge project ID
+        run: bun scripts/ensure-curseforge-project.ts
+
+      - name: Commit TOC project ID
+        run: |
+          if git diff --quiet ProfessionTraitSearch.toc; then
+            echo "TOC unchanged"
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add ProfessionTraitSearch.toc
+          git commit -m "chore: set CurseForge project ID"
+          git push
