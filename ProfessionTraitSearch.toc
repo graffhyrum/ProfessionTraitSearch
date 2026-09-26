@@ -9,7 +9,7 @@
 
 ## X-Curse-Project-ID: 1584836
 
-## Version: 1.0.3
+## Version: 1.0.4
 
 ## SavedVariables: ProfessionTraitSearchDB
 
