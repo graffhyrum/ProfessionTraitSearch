@@ -24,6 +24,7 @@ Single-context layout — `CONTEXT.md` + `docs/adr/` at repo root. See `docs/age
 
 - Run `just test` after code changes (sandbox + Busted).
 - Run `just check` before handoff (TOC validate + Luacheck).
+- After a retail patch: `just retail-status`, then `just retail-bump`, then `just check`. Validate accepts the Interface of the installed `Wow.exe`, or the known list when that exe cannot be read.
 - First-time setup: `just bootstrap` — see [docs/mechanic-setup.md](docs/mechanic-setup.md).
 - In-game verification: enable `!Mechanic`, `/reload`, check Tests tab for NoMoreWorldQuests.
 - Mechanic command reference: `!Mechanic/AGENTS.md` in the Mechanic repo.

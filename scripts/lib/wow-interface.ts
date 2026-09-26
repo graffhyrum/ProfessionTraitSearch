@@ -60,11 +60,18 @@ export function parseWowFileVersion(fileVersion: string): {
 }
 
 export function findWowExe(startDir: string): string | null {
-	const envDir = process.env.WOW_RETAIL_DIR;
-	if (envDir) {
-		const envExe = join(envDir, "Wow.exe");
-		if (existsSync(envExe)) {
-			return envExe;
+	for (const key of ["WOW_RETAIL_DIR", "MECHANIC_WOW_ROOT"] as const) {
+		const root = process.env[key];
+		if (!root) {
+			continue;
+		}
+		const direct = join(root, "Wow.exe");
+		if (existsSync(direct)) {
+			return direct;
+		}
+		const retail = join(root, "_retail_", "Wow.exe");
+		if (existsSync(retail)) {
+			return retail;
 		}
 	}
 

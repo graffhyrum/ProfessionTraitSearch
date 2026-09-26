@@ -94,7 +94,9 @@ python -c "from mechanic.setup import generate_busted_bat; generate_busted_bat()
 | Command | Purpose |
 |---------|---------|
 | `just test` | Sandbox + Busted |
-| `just check` | TOC validate + Luacheck |
+| `just check` | TOC validate + Luacheck. Accepts the Interface of `Wow.exe`, or the known list when that exe cannot be read |
+| `just retail-status` | Compare TOC Interface with `Wow.exe` |
+| `just retail-bump` | Write TOC Interface from `Wow.exe` |
 | `just format` | StyLua |
 | `just reload` | Trigger in-game `/reload` |
 | `just dashboard` | Mechanic UI at localhost:3100 |
@@ -108,7 +110,7 @@ After `/reload`, in-game test results appear in Mechanic → Tests when `!Mechan
 | `just test-sandbox` | 3 passed |
 | `just test-busted` | 15 passed |
 | `just lint` | 0 errors |
-| `just validate` | TOC files OK; interface `120100` flagged outdated by Mechanic (expected until validator catches up) |
+| `just validate` | TOC Interface must match `Wow.exe` or Mechanic's known list |
 
 Junctions:
 
