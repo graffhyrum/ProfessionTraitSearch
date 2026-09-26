@@ -69,14 +69,47 @@ local function refreshPopout()
 	PTS.SpecBrowser:Update(popout)
 end
 
+local function syncViewMode()
+	if indexMode then
+		PTS.Controller:SetViewMode("embedded")
+	elseif PTS.SpecBrowser.standalone and PTS.SpecBrowser.standalone:IsShown() then
+		PTS.Controller:SetViewMode("standalone")
+	else
+		PTS.Controller:SetViewMode("closed")
+	end
+end
+
+local function syncListening()
+	local listen = ProfessionsFrame and ProfessionsFrame:IsShown()
+	if not listen then
+		local standalone = PTS.SpecBrowser.standalone
+		if standalone and standalone:IsShown() then
+			listen = true
+		end
+	end
+	if not listen then
+		local popout = PTS.SpecBrowser.popout
+		if popout and popout:IsShown() then
+			listen = true
+		end
+	end
+	PTS.Controller:SetListening(listen)
+end
+
+local function syncLifecycle()
+	syncViewMode()
+	syncListening()
+end
+
 local function applyIndexMode(enabled)
 	indexMode = enabled == true
 	if indexMode and not isHostTabActive() then
 		indexMode = false
 	end
 
+	syncViewMode()
+
 	if indexMode then
-		PTS.Controller:SetViewMode("embedded")
 		local active = PTS.ProfessionContext.GetActiveContext()
 		if active then
 			PTS.Controller:SetSkillLine(active.skillLineID)
@@ -84,15 +117,10 @@ local function applyIndexMode(enabled)
 			PTS.Controller:InvalidateIndex()
 			PTS.Controller:Refresh()
 		end
-	else
-		if PTS.SpecBrowser.standalone and PTS.SpecBrowser.standalone:IsShown() then
-			PTS.Controller:SetViewMode("standalone")
-		else
-			PTS.Controller:SetViewMode("closed")
-		end
 	end
 
 	PTS.SpecBrowser:SetPopoutVisible(indexMode)
+	syncListening()
 	updateIndexTab()
 end
 
@@ -120,16 +148,13 @@ local function onTabSet(_, frame, tabID)
 end
 
 local function onProfessionsOpen()
-	PTS.Controller:SetListening(true)
+	syncListening()
 	updateIndexTab()
 end
 
 local function onProfessionsClose()
 	applyIndexMode(false)
 	updateIndexTab()
-	if not (PTS.SpecBrowser.standalone and PTS.SpecBrowser.standalone:IsShown()) then
-		PTS.Controller:SetListening(false)
-	end
 end
 
 local function createIndexSideTab(professionsFrame)
@@ -180,6 +205,12 @@ local function setupProfessionsFrame(frame)
 end
 
 function ProfessionsHook:Init()
+	PTS.ProfessionsNavigator:SetBeforeNavigate(function()
+		if indexMode then
+			applyIndexMode(false)
+		end
+	end)
+
 	local frame = CreateFrame("Frame")
 	frame:RegisterEvent("ADDON_LOADED")
 	frame:SetScript("OnEvent", function(_, event, name)
@@ -198,4 +229,12 @@ end
 
 function ProfessionsHook:IsIndexMode()
 	return indexMode
+end
+
+function ProfessionsHook:NotifyBrowserShown()
+	syncLifecycle()
+end
+
+function ProfessionsHook:NotifyBrowserHidden()
+	syncLifecycle()
 end

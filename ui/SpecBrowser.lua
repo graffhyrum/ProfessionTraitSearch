@@ -143,7 +143,7 @@ local function createRow(parent)
 	f.detail = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 	f.detail:SetPoint("TOPLEFT", f.name, "BOTTOMLEFT", 0, -TEXT_GAP)
 	f.detail:SetJustifyH("LEFT")
-	f.detail:SetTextColor(PTS.RowPresentation.DetailColor())
+	f.detail:SetTextColor(PTS.IndexRow.DetailColor())
 	f.detail:SetWordWrap(true)
 
 	f.badge = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -173,7 +173,8 @@ local function createRow(parent)
 		if not self.row then
 			return
 		end
-		local tint = PTS.RowPresentation.RowTint(self.row)
+		local view = PTS.IndexRow.BuildView(self.row)
+		local tint = view.tint
 		self.bg:SetColorTexture(
 			math.min(tint[1] + 0.1, 1),
 			math.min(tint[2] + 0.1, 1),
@@ -185,7 +186,8 @@ local function createRow(parent)
 		if not self.row then
 			return
 		end
-		local tint = PTS.RowPresentation.RowTint(self.row)
+		local view = PTS.IndexRow.BuildView(self.row)
+		local tint = view.tint
 		self.bg:SetColorTexture(tint[1], tint[2], tint[3], tint[4])
 	end)
 
@@ -229,33 +231,32 @@ local function updateFoldButton(rowFrame, row)
 end
 
 local function populateRow(rowFrame, row, innerWidth)
-	local r, g, b = PTS.RowPresentation.TitleColor(row)
-	local tint = PTS.RowPresentation.RowTint(row)
+	local view = PTS.IndexRow.BuildView(row)
+	local r, g, b = view.titleColor[1], view.titleColor[2], view.titleColor[3]
+	local tint = view.tint
 
 	rowFrame.bg:SetColorTexture(tint[1], tint[2], tint[3], tint[4])
 	rowFrame.name:SetTextColor(r, g, b)
 	rowFrame.badge:SetText("")
 
-	local dr, dg, db = PTS.RowPresentation.DetailColor()
+	local dr, dg, db = PTS.IndexRow.DetailColor()
 	rowFrame.detail:SetTextColor(dr, dg, db)
-	local nameText = PTS.RowDisplay.DisplayName(row)
+	local nameText = view.displayName
 	local detailText = detailAfterTitle(nameText, row.description)
-	local minH = PTS.RowPresentation.MinHeight(row)
+	local minH = view.minHeight
 
-	rowFrame.name:SetFontObject(PTS.RowPresentation.FontObject(row))
+	rowFrame.name:SetFontObject(view.fontObject)
 
 	updateFoldButton(rowFrame, row)
 	local textLeft = rowLineIndent(row) + ROW_TEXT_OFFSET
 
-	local pathBadge = PTS.RowPresentation.PathRankBadge(row)
-	if pathBadge then
-		rowFrame.badge:SetText(pathBadge)
+	if view.pathRankBadge then
+		rowFrame.badge:SetText(view.pathRankBadge)
 	elseif row.kind == "perk" then
-		rowFrame.badge:SetText(PTS.RowDisplay.PerkBadgeText(row))
+		rowFrame.badge:SetText(view.perkBadgeText)
 	end
-	local br, bg, bb = PTS.RowPresentation.BadgeColor(row)
-	if br then
-		rowFrame.badge:SetTextColor(br, bg, bb)
+	if view.badgeColor then
+		rowFrame.badge:SetTextColor(view.badgeColor[1], view.badgeColor[2], view.badgeColor[3])
 	end
 
 	local badgeReserve = measureBadgeReserve(rowFrame.badge)
@@ -483,7 +484,7 @@ local function buildChrome(browser)
 
 	local header = browser:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	header:SetPoint("TOPLEFT", 18, -18)
-	header:SetTextColor(PTS.RowPresentation.HeaderColor())
+	header:SetTextColor(PTS.IndexRow.HeaderColor())
 	browser.header = header
 
 	local profDropdown = CreateFrame("Frame", nil, browser, "UIDropDownMenuTemplate")
@@ -495,7 +496,7 @@ local function buildChrome(browser)
 
 	local kpLabel = browser:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 	kpLabel:SetPoint("TOPRIGHT", -36, -20)
-	kpLabel:SetTextColor(PTS.RowPresentation.DetailColor())
+	kpLabel:SetTextColor(PTS.IndexRow.DetailColor())
 	browser.kpLabel = kpLabel
 
 	local divider = browser:CreateTexture(nil, "ARTWORK")
@@ -508,7 +509,7 @@ local function buildChrome(browser)
 	local searchLabel = browser:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 	searchLabel:SetPoint("TOPLEFT", 18, -74)
 	searchLabel:SetText("Search")
-	searchLabel:SetTextColor(PTS.RowPresentation.DetailColor())
+	searchLabel:SetTextColor(PTS.IndexRow.DetailColor())
 	browser.searchLabel = searchLabel
 
 	local search = CreateFrame("EditBox", nil, browser, "InputBoxTemplate")
@@ -587,7 +588,7 @@ function SpecBrowser:Update(browser)
 		local ctx = PTS.Controller:GetContext()
 		local kp = PTS.Controller:GetKnowledgeAvailable()
 		browser.kpLabel:Show()
-		local kr, kg, kb = PTS.RowPresentation.KnowledgeLabelColor(kp)
+		local kr, kg, kb = PTS.IndexRow.KnowledgeLabelColor(kp)
 		browser.kpLabel:SetTextColor(kr, kg, kb)
 		if ctx then
 			browser.kpLabel:SetText("Knowledge available: " .. kp)
@@ -662,18 +663,12 @@ function SpecBrowser:CreateStandalone()
 	tinsert(UISpecialFrames, f:GetName())
 	attachStandaloneSizer(f)
 	f:SetScript("OnShow", function()
-		PTS.Controller:SetViewMode("standalone")
-		PTS.Controller:SetListening(true)
+		PTS.ProfessionsHook:NotifyBrowserShown()
 		PTS.Controller:Refresh()
 		SpecBrowser:Update(f)
 	end)
 	f:SetScript("OnHide", function()
-		if SpecBrowser.popout and SpecBrowser.popout:IsShown() then
-			PTS.Controller:SetViewMode("embedded")
-		else
-			PTS.Controller:SetViewMode("closed")
-		end
-		PTS.Controller:SetListening(false)
+		PTS.ProfessionsHook:NotifyBrowserHidden()
 	end)
 
 	local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
@@ -700,16 +695,12 @@ function SpecBrowser:CreatePopout(professionsFrame)
 	f:Hide()
 	f.isPopout = true
 	f:SetScript("OnShow", function()
-		PTS.Controller:SetListening(true)
+		PTS.ProfessionsHook:NotifyBrowserShown()
 		PTS.Controller:Refresh()
 		SpecBrowser:Update(f)
 	end)
 	f:SetScript("OnHide", function()
-		if not (self.standalone and self.standalone:IsShown()) then
-			PTS.Controller:SetListening(false)
-		else
-			PTS.Controller:SetViewMode("standalone")
-		end
+		PTS.ProfessionsHook:NotifyBrowserHidden()
 	end)
 	self.popout = f
 	instances[#instances + 1] = f

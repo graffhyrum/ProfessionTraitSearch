@@ -3,8 +3,20 @@ local PTS = _G.ProfessionTraitSearch
 local ProfessionsNavigator = {}
 PTS.ProfessionsNavigator = ProfessionsNavigator
 
+local NAV_STATE = {
+	idle = "idle",
+	opening = "opening",
+	applying = "applying",
+}
+
+local navState = NAV_STATE.idle
 local pendingNav
 local navFrame
+local beforeNavigate
+
+local function setNavState(nextState)
+	navState = nextState
+end
 
 local function getSpecTabID()
 	return ProfessionsFrame and ProfessionsFrame.specializationsTabID
@@ -56,11 +68,38 @@ local function applySpecNavigation(target)
 	return true
 end
 
-local function isStandaloneNavigation()
-	return PTS.Controller and PTS.Controller:GetViewMode() == "standalone"
+local function resolveViewMode()
+	if PTS.Controller and PTS.Controller.GetViewMode then
+		return PTS.Controller:GetViewMode()
+	end
+	return "embedded"
+end
+
+local function openProfessionForTarget(target)
+	local viewMode = resolveViewMode()
+	local openOptions = PTS.ProfessionOpenStrategy and PTS.ProfessionOpenStrategy.Resolve(
+		target.skillLineID,
+		viewMode,
+		PTS.TradeSkillSession
+	)
+	if not openOptions then
+		PTS.TradeSkillSession:OpenForSkillLine(target.skillLineID, {
+			forceFull = viewMode == "standalone",
+			openSpecTab = true,
+		})
+		return
+	end
+	PTS.TradeSkillSession:OpenForSkillLine(target.skillLineID, {
+		forceFull = openOptions.forceFull,
+		openSpecTab = openOptions.openSpecTab,
+	})
 end
 
 local function applyPendingNav()
+	if navState ~= NAV_STATE.opening and navState ~= NAV_STATE.applying then
+		return false
+	end
+
 	local target = pendingNav
 	if not target or not ProfessionsFrame or not getSpecTabID() then
 		return false
@@ -75,12 +114,16 @@ local function applyPendingNav()
 		return false
 	end
 
+	setNavState(NAV_STATE.applying)
 	PTS.TradeSkillSession:EnsureSpecTabSelected()
 
 	if applySpecNavigation(target) then
 		pendingNav = nil
+		setNavState(NAV_STATE.idle)
 		return true
 	end
+
+	setNavState(NAV_STATE.opening)
 	return false
 end
 
@@ -106,10 +149,30 @@ local function schedulePendingNav()
 	end)
 end
 
+function ProfessionsNavigator:GetNavState()
+	return navState
+end
+
+function ProfessionsNavigator:GetPendingNav()
+	return pendingNav
+end
+
+function ProfessionsNavigator:SetBeforeNavigate(fn)
+	beforeNavigate = fn
+end
+
+function ProfessionsNavigator:SelectSpecPath(specPage, tabTreeID, pathID)
+	selectSpecPath(specPage, tabTreeID, pathID)
+end
+
 function ProfessionsNavigator:Navigate(row)
 	local target = PTS.SpecNavigation and PTS.SpecNavigation.ResolveTarget(row)
 	if not target then
 		return
+	end
+
+	if beforeNavigate then
+		beforeNavigate(row, target)
 	end
 
 	if C_AddOns and C_AddOns.LoadAddOn and not C_AddOns.IsAddOnLoaded("Blizzard_Professions") then
@@ -120,11 +183,9 @@ function ProfessionsNavigator:Navigate(row)
 		return
 	end
 
+	setNavState(NAV_STATE.opening)
 	pendingNav = target
-	PTS.TradeSkillSession:OpenForSkillLine(target.skillLineID, {
-		forceFull = isStandaloneNavigation(),
-		openSpecTab = true,
-	})
+	openProfessionForTarget(target)
 	if not applyPendingNav() then
 		schedulePendingNav()
 	end
