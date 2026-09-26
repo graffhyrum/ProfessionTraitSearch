@@ -23,6 +23,11 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
+      - name: Trace release and publish untagged version
+        run: bun scripts/trace-release.ts --publish-untagged
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Version Packages PR or publish tag
         uses: changesets/action@v1
         with:
@@ -31,5 +36,11 @@ jobs:
           commit: "chore: version packages"
           title: "chore: version packages"
           createGithubReleases: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trace release result
+        if: always()
+        run: bun scripts/trace-release.ts --check
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
