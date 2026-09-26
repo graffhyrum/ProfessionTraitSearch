@@ -7,10 +7,15 @@ PTS.Controller = Controller
 PTS.ADDON_NAME = addonName
 PTS.ADDON_ICON = "Interface\\AddOns\\ProfessionTraitSearch\\assets\\pts-icon-512.png"
 
-local context
-local allRows = {}
-local visibleRows = {}
-local indexDirty = true
+local session
+
+local function getSession()
+	if not session then
+		session = PTS.IndexSession:New()
+	end
+	return session
+end
+
 local listening = false
 local viewMode = "closed"
 local callbacks = {}
@@ -93,10 +98,32 @@ local function filterOptions()
 	}
 end
 
-local function applyVisibleRows()
-	local options = filterOptions()
-	visibleRows = PTS.SpecSearch.Filter(allRows, options)
-	visibleRows = PTS.SpecFold.Filter(visibleRows, allRows, Controller:GetFoldCollapsed())
+function Controller:GetFoldCollapsedForSkillLine(skillLineID)
+	local charDB = self:GetCharDB()
+	charDB.foldCollapsedBySkillLine = charDB.foldCollapsedBySkillLine or {}
+	charDB.foldCollapsed = nil
+
+	if not skillLineID then
+		return {}
+	end
+
+	local scoped = charDB.foldCollapsedBySkillLine[skillLineID]
+	if not scoped then
+		scoped = {}
+		charDB.foldCollapsedBySkillLine[skillLineID] = scoped
+	end
+	return scoped
+end
+
+local function sessionOptions()
+	return {
+		charDB = Controller:GetCharDB(),
+		viewMode = viewMode,
+		filterOptions = filterOptions(),
+		resolveFoldCollapsed = function(skillLineID)
+			return Controller:GetFoldCollapsedForSkillLine(skillLineID)
+		end,
+	}
 end
 
 local function refreshProfessionsFrameForSelection()
@@ -114,7 +141,7 @@ local function ensureEventFrame()
 	eventFrame = CreateFrame("Frame")
 	eventFrame:SetScript("OnEvent", function(_, event)
 		if event == "SKILL_LINES_CHANGED" then
-			indexDirty = true
+			getSession():Invalidate()
 			if listening then
 				eventFrame:UnregisterEvent(event)
 			end
@@ -159,48 +186,28 @@ function Controller:GetViewMode()
 end
 
 function Controller:InvalidateIndex()
-	indexDirty = true
+	getSession():Invalidate()
 end
 
 function Controller:RebuildIndex()
-	local charDB = self:GetCharDB()
-	-- Embedded index mode prefers active profession context (ProfessionsFrame in-game).
-	local preferActive = viewMode == "embedded"
-	local requestedSkillLineID = charDB.lastSkillLineID
-	context = PTS.ProfessionContext.ResolveForIndex(charDB, preferActive)
-	if context then
-		charDB.lastSkillLineID = context.skillLineID
-	elseif requestedSkillLineID and viewMode == "standalone" then
-		charDB.lastSkillLineID = requestedSkillLineID
-	end
-	allRows = context and PTS.SpecIndex.Build(context) or {}
-	indexDirty = false
-	applyVisibleRows()
+	getSession():Rebuild(sessionOptions())
 end
 
 function Controller:Refresh()
 	PTS.Debounce.After("index", function()
-		if indexDirty then
-			Controller:RebuildIndex()
-		else
-			applyVisibleRows()
-		end
+		getSession():Refresh(sessionOptions())
 		fireCallbacks()
 	end)
 end
 
 function Controller:GetContext()
-	if indexDirty then
-		self:RebuildIndex()
-	end
-	return context
+	getSession():EnsureFresh(sessionOptions())
+	return getSession():GetContext()
 end
 
 function Controller:GetVisibleRows()
-	if indexDirty then
-		self:RebuildIndex()
-	end
-	return visibleRows
+	getSession():EnsureFresh(sessionOptions())
+	return getSession():GetVisibleRows()
 end
 
 function Controller:GetKnowledgeAvailable()
@@ -240,21 +247,11 @@ function Controller:GetUnearnedOnly()
 end
 
 function Controller:GetFoldCollapsed()
-	local charDB = self:GetCharDB()
-	charDB.foldCollapsedBySkillLine = charDB.foldCollapsedBySkillLine or {}
-	charDB.foldCollapsed = nil
-
 	local ctx = self:GetContext()
 	if not ctx or not ctx.skillLineID then
 		return {}
 	end
-
-	local scoped = charDB.foldCollapsedBySkillLine[ctx.skillLineID]
-	if not scoped then
-		scoped = {}
-		charDB.foldCollapsedBySkillLine[ctx.skillLineID] = scoped
-	end
-	return scoped
+	return self:GetFoldCollapsedForSkillLine(ctx.skillLineID)
 end
 
 function Controller:IsFoldCollapsed(rowKey)
@@ -287,13 +284,12 @@ function Controller:ExpandAll()
 end
 
 function Controller:CollapseAll()
-	if indexDirty then
-		self:RebuildIndex()
-	end
+	getSession():EnsureFresh(sessionOptions())
 	local collapsed = self:GetFoldCollapsed()
 	for k in pairs(collapsed) do
 		collapsed[k] = nil
 	end
+	local allRows = getSession():GetAllRows()
 	for i = 1, #allRows do
 		local row = allRows[i]
 		if row.kind == "tab" or row.kind == "path" then
@@ -332,6 +328,10 @@ function Controller:ListProfessions()
 end
 
 function Controller:ApplyFromSaved()
-	indexDirty = true
+	getSession():Invalidate()
 	self:Refresh()
+end
+
+function Controller:GetIndexSession()
+	return getSession()
 end

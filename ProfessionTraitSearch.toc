@@ -59,6 +59,8 @@ core\SpecFold.lua
 
 core\SpecNavigation.lua
 
+core\IndexSession.lua
+
 core\Controller.lua
 
 ui\SpecBrowser.lua

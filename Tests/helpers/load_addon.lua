@@ -54,6 +54,7 @@ function M.load_core()
 	M.load("core/SpecSearch.lua")
 	M.load("core/SpecFold.lua")
 	M.load("core/SpecNavigation.lua")
+	M.load("core/IndexSession.lua")
 	M.load("core/Controller.lua", "ProfessionTraitSearch")
 end
 
