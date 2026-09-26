@@ -123,3 +123,22 @@ bd prime                # Refresh Beads context
 
 **Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
 <!-- END BEADS CODEX SETUP -->
+
+## Cursor Cloud specific instructions
+
+Linux agents do not have World of Warcraft or PowerShell. The `justfile` sets `windows-shell`, so `just test` and `just check` do not run here. Use the same Mechanic commands as `.github/workflows/test.yml`.
+
+Cloud setup installs Lua 5.1, LuaRocks (`busted`, `luacheck`), StyLua 2.3.1, Bun 1.4.2, and the Mechanic CLI (`mech`) from `https://github.com/Falkicon/Mechanic` (`~/.local/share/Mechanic`, venv `~/.local/share/mechanic-venv`). `~/.mechanic/config.json` points `dev_path` at `~/.local/share/wow-addons`, where `ProfessionTraitSearch` is a symlink to the repo. No WoW client is configured. `mech setup --skip-config` prints `Platform not supported` on Linux and still exits 0. Confirm tools with `mech call tools.status`.
+
+```bash
+bun test scripts
+PTS_ROOT="$PWD" mech call addon.test '{"addon":"ProfessionTraitSearch","path":"'"$PWD"'"}'
+mech call addon.lint '{"addon":"ProfessionTraitSearch","path":"'"$PWD"'"}'
+```
+
+- `addon.test` is the suite that runs on Linux (Busted, `*_busted.lua`). Expect 90 passed.
+- `sandbox.test` looks for `Core/*_spec.lua`. This repo uses lowercase `core/`. On Linux that command reports 0 tests, so `core/rank_util_spec.lua` does not run. Busted is the gate.
+- `addon.validate` fails on Linux for two known reasons: TOC file paths use backslashes, and Interface `120100` is outside upstream Mechanic's hardcoded list (`120001`, `120000`, `110105`, `110100`). There is no `Wow.exe` to supply the live Interface.
+- `bun scripts/retail-status.ts` and `retail-bump` need `Wow.exe`. Skip them here.
+- CurseForge scripts need `CF_API_KEY`. Tests do not.
+- The tracked `ProfessionTraitSearch` symlink points at a developer machine path and is broken in this environment. The addon root is the repository root. Do not follow that symlink.
