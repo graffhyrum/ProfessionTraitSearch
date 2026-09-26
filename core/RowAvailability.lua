@@ -30,11 +30,11 @@ function RowAvailability.IsNextPerk(row)
 	if not row or row.kind ~= "perk" then
 		return false
 	end
-	return row.isNextPerk == true and not PTS.RowProgress.IsEarned(row)
+	return row.isNextPerk == true and not PTS.IndexRow.IsEarned(row)
 end
 
 function RowAvailability.IsPerkAccessible(row)
-	if not row or row.kind ~= "perk" or PTS.RowProgress.IsEarned(row) then
+	if not row or row.kind ~= "perk" or PTS.IndexRow.IsEarned(row) then
 		return false
 	end
 	if RowAvailability.IsNextPerk(row) then
@@ -49,7 +49,7 @@ function RowAvailability.IsPerkAccessible(row)
 end
 
 function RowAvailability.IsPerkInaccessible(row)
-	if not row or row.kind ~= "perk" or PTS.RowProgress.IsEarned(row) then
+	if not row or row.kind ~= "perk" or PTS.IndexRow.IsEarned(row) then
 		return false
 	end
 	if RowAvailability.IsNextPerk(row) then
@@ -65,7 +65,7 @@ function RowAvailability.ProgressSemantic(row)
 	if row.kind == "tab" then
 		return "structural"
 	end
-	if PTS.RowProgress.IsCompleted(row) or PTS.RowProgress.IsEarned(row) then
+	if PTS.IndexRow.IsCompleted(row) or PTS.IndexRow.IsEarned(row) then
 		return "earned"
 	end
 	if row.kind == "perk" then

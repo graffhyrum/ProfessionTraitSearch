@@ -74,8 +74,11 @@ function SpecSearch.Filter(rows, options)
 		if majorOnly and (row.kind ~= "perk" or not row.isMajorPerk) then
 			ok = false
 		end
-		if ok and unearnedOnly and not PTS.RowProgress.IsUnearned(row) then
-			ok = false
+		if ok and unearnedOnly then
+			local view = PTS.IndexRow.BuildView(row)
+			if not view or not view.isUnearned then
+				ok = false
+			end
 		end
 		if ok and query ~= "" and not rowMatches(row, query) then
 			ok = false

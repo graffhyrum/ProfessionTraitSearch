@@ -39,13 +39,9 @@ core\ProfessionContext.lua
 
 core\RankUtil.lua
 
-core\RowProgress.lua
+core\IndexRow.lua
 
 core\RowAvailability.lua
-
-core\RowDisplay.lua
-
-core\RowPresentation.lua
 
 core\SpecTreeWalker.lua
 
