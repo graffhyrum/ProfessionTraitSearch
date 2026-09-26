@@ -19,8 +19,14 @@ Milestone on a sub-specialization rank dial. `isMajorPerk` → major perk.
 _Avoid in UI_: trait point, rank bonus
 
 **Specialization index** (player) / **spec index** (internal):
-Flat list from `C_ProfSpecs` + `C_Traits` via `SpecIndex.Build`.
+Flat list from `C_ProfSpecs` + `C_Traits` via `SpecIndex.Build` (`SpecTreeWalker` snapshot → `RowBuilder` rows).
 _Avoid in UI_: trait index, trait browser
+
+**SpecTreeWalker**:
+Live API adapter — walks `C_ProfSpecs` + `C_Traits` and produces a tree snapshot for the spec index.
+
+**RowBuilder**:
+Pure seam — converts a tree snapshot into flat spec index rows (searchable text, perk ordering, navigation fields).
 
 **RowProgress**:
 Progress seam — `IsUnearned`, `IsCompleted`, and `IsEarned` centralize earned/completed semantics for index rows.

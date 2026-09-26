@@ -1,5 +1,4 @@
-## Interface: 120007
-
+## Interface: 120100
 ## Title: Profession Trait Search
 
 ## Notes: Search specializations, sub-specializations, and perks in profession spec trees.
@@ -10,7 +9,7 @@
 
 ## X-Curse-Project-ID: 1584836
 
-## Version: 1.0.2
+## Version: 1.0.3
 
 ## SavedVariables: ProfessionTraitSearchDB
 
@@ -47,6 +46,10 @@ core\RowAvailability.lua
 core\RowDisplay.lua
 
 core\RowPresentation.lua
+
+core\SpecTreeWalker.lua
+
+core\RowBuilder.lua
 
 core\SpecIndex.lua
 
