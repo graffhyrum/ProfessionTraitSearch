@@ -43,8 +43,9 @@ export CURSEFORGE_API_KEY=...
 | `.github/workflows/resolve-curseforge-project.yml` | Manual dispatch → run script → commit TOC if changed |
 | `.github/workflows/release.yml` | Tag `v*` → `BigWigsMods/packager@v2` uploads to CurseForge + GitHub Release |
 | `scripts/publish-tag.ts` | Pushes `v{package.json version}` tag (triggers release workflow) |
+| `scripts/trace-release.ts` | Prints the release chain. `--publish-untagged` pushes a missing tag before a version PR. `--check` fails on a gap. `--tagged` checks a tag checkout before packager upload. |
 
-Release path: changeset version PR → merge → `publish-tag` → tag push → packager. Packager reads `CF_API_KEY` and `## X-Curse-Project-ID` from the TOC.
+Release path: trace → publish untagged `package.json` version → changeset version PR → merge → `publish-tag` → tag push → trace tag → packager. A pending changeset does not block the untagged publish. Packager reads `CF_API_KEY` and `## X-Curse-Project-ID` from the TOC.
 
 ## Quick workflows
 
