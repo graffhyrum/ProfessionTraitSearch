@@ -1,4 +1,4 @@
-## Interface: 120100
+## Interface: 120105
 ## Title: Profession Trait Search
 
 ## Notes: Search specializations, sub-specializations, and perks in profession spec trees.
@@ -9,7 +9,7 @@
 
 ## X-Curse-Project-ID: 1584836
 
-## Version: 1.0.3
+## Version: 1.0.5
 
 ## SavedVariables: ProfessionTraitSearchDB
 

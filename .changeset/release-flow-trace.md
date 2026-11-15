@@ -1,5 +1,4 @@
 ---
-"profession-trait-search": patch
 ---
 
-Trace the release path and publish an untagged version before a version PR.
+CI only: check that a Release tag checkout matches package.json, the TOC, and CHANGELOG before packaging. No package version bump.

@@ -713,39 +713,44 @@ describe("ProfessionsNavigator.SetBeforeNavigate", function()
 		local popoutShown = false
 
 		_G.CreateFrame = function(_, _, _, template)
-			local frame = {
-				RegisterEvent = function() end,
-				SetScript = function() end,
-				HookScript = function() end,
-				SetFrameStrata = function() end,
-				SetFrameLevel = function() end,
-				SetPoint = function() end,
-				ClearAllPoints = function() end,
-				SetWidth = function() end,
-				SetBackdrop = function() end,
-				SetBackdropColor = function() end,
-				Hide = function()
-					popoutShown = false
-				end,
-				Show = function()
-					popoutShown = true
-				end,
-				IsShown = function()
-					return popoutShown
-				end,
-				SetShown = function(_, shown)
-					popoutShown = shown == true
-				end,
-				SetChecked = function() end,
-				Icon = {
-					SetTexture = function() end,
-					SetSize = function() end,
-				},
-				SetCustomOnMouseUpHandler = function(_, handler)
-					frame._mouseUpHandler = handler
-				end,
-				tooltipText = nil,
+			-- Lua 5.1 starts a local's scope only after its declaring statement, so a
+			-- method inside `local frame = { ... frame.x = ... }` would resolve `frame`
+			-- as a global. Bind the local first, then attach methods.
+			local frame = {}
+			frame.RegisterEvent = function() end
+			frame.UnregisterEvent = function() end
+			frame.UnregisterAllEvents = function() end
+			frame.SetScript = function() end
+			frame.HookScript = function() end
+			frame.SetFrameStrata = function() end
+			frame.SetFrameLevel = function() end
+			frame.SetPoint = function() end
+			frame.ClearAllPoints = function() end
+			frame.SetWidth = function() end
+			frame.SetBackdrop = function() end
+			frame.SetBackdropColor = function() end
+			frame._shown = false
+			frame.Hide = function()
+				frame._shown = false
+			end
+			frame.Show = function()
+				frame._shown = true
+			end
+			frame.IsShown = function()
+				return frame._shown
+			end
+			frame.SetShown = function(_, shown)
+				frame._shown = shown == true
+			end
+			frame.SetChecked = function() end
+			frame.Icon = {
+				SetTexture = function() end,
+				SetSize = function() end,
 			}
+			frame.SetCustomOnMouseUpHandler = function(_, handler)
+				frame._mouseUpHandler = handler
+			end
+			frame.tooltipText = nil
 			if template == "LargeSideTabButtonTemplate" then
 				indexTab = frame
 			end
@@ -773,15 +778,34 @@ describe("ProfessionsNavigator.SetBeforeNavigate", function()
 			HookScript = function() end,
 		}
 
+		_G.UnitGUID = function()
+			return "test-guid"
+		end
+		_G.UnitName = function()
+			return "Tester"
+		end
+		_G.GetRealmName = function()
+			return "Realm"
+		end
+
 		load_addon.load_core()
 		load_addon.load("ui/ProfessionsNavigator.lua")
 		load_addon.load("ui/ProfessionsHook.lua")
 
 		local PTS = load_addon.pts()
+		-- Hook setup calls SpecBrowser:CreatePopout / SetPopoutVisible (loaded
+		-- from the TOC in game). This test exercises the hook, not the browser.
+		PTS.SpecBrowser = {
+			CreatePopout = function() end,
+			SetPopoutVisible = function(_, visible)
+				popoutShown = visible == true
+			end,
+			Update = function() end,
+		}
 		PTS.ProfessionsHook:Init()
 
 		assert.is_not_nil(indexTab)
-		indexTab:_mouseUpHandler(nil, "LeftButton", true)
+		indexTab:_mouseUpHandler("LeftButton", true)
 		assert.is_true(PTS.ProfessionsHook:IsIndexMode())
 		assert.is_true(popoutShown)
 

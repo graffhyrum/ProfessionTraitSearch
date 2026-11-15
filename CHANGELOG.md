@@ -1,10 +1,23 @@
 # profession-trait-search
 
+## 1.0.5
+
+### Patch Changes
+
+- 538ec27: Bump Interface to 120105 for WoW 12.1.5
+
+## 1.0.4
+
+### Patch Changes
+
+- c50c2a3: Add retail Interface status and bump scripts for Wow.exe sync.
+
 ## 1.0.3
 
 ### Patch Changes
 
 - Bump Interface to 120100 for WoW 12.1.0
+
 ## 1.0.2
 
 ### Patch Changes

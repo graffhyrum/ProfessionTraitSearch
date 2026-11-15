@@ -18,17 +18,12 @@ PRs to `main` run the **Changesets** workflow (`changeset status --since=origin/
 
 ## Releasing (automated)
 
-On merge to `main`, **Version Packages** (`version-packages.yml`) prints a release trace, then:
+On merge to `main`, **Version Packages** (`version-packages.yml`):
 
-1. If `package.json` version has no `v*` tag, push that tag **before** any version PR. A pending changeset must not block this.
-2. Open a **Version Packages** PR when pending changesets exist.
-3. On merge of that PR (no changesets left), run `bun scripts/publish-tag.ts` → push `v{version}`.
+1. Opens a **Version Packages** PR when pending changesets exist.
+2. On merge of that PR, runs `bun scripts/publish-tag.ts` → pushes `v{version}`.
 
-The job summary lists each stage: `toc`, `changelog`, `tag`, `changesets`, `version-pr`. A missing tag or a missing version PR fails the check step.
-
-Tag push triggers **Release** (`release.yml`). That workflow traces the tag against `package.json`, the TOC, and `CHANGELOG.md`, then uploads to CurseForge and GitHub via BigWigs packager.
-
-`bun scripts/trace-release.ts --check` reports the same chain locally. `--publish-untagged` pushes the missing tag. `--tagged` checks the current tag checkout.
+**Release** (`release.yml`) publishes to CurseForge + GitHub via BigWigs packager on `v*` tag push, after a successful Version Packages run (`GITHUB_TOKEN` tag pushes do not fire `push: tags`), or via `workflow_dispatch` with a `tag` input that already points at a commit on `main`. Before packaging, it checks that the checked-out tag matches `package.json`, the TOC, and `CHANGELOG.md` (`bun scripts/trace-release.ts --tagged`).
 
 ## Local
 
@@ -46,8 +41,8 @@ Tag locally (CI normally does this):
 bun run publish:tag
 ```
 
-Trace the chain:
+Trace a tag checkout (used in Release before packager):
 
 ```bash
-bun scripts/trace-release.ts --check
+bun scripts/trace-release.ts --tagged
 ```

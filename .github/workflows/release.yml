@@ -4,25 +4,108 @@ on:
   push:
     tags:
       - 'v*'
+  # GITHUB_TOKEN tag pushes from Version Packages do not fire `push: tags`.
+  workflow_run:
+    workflows: ["Version Packages"]
+    types: [completed]
+  # Publish an existing tag when the Version Packages workflow_run already
+  # completed before this fallback landed on main (e.g. v1.0.5).
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to publish (must point at a commit on main)
+        required: true
+        type: string
+
+concurrency:
+  group: curseforge-release
+  cancel-in-progress: false
 
 permissions:
   contents: write
 
 jobs:
   release:
+    if: >-
+      github.event_name == 'push'
+      || (github.event_name == 'workflow_run'
+        && github.event.workflow_run.conclusion == 'success')
+      || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     env:
       CF_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
       GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          ref: >-
+            ${{
+              github.event_name == 'workflow_run' && github.event.workflow_run.head_sha
+              || github.event_name == 'workflow_dispatch' && inputs.tag
+              || github.ref
+            }}
+
+      - name: Fetch tags
+        run: git fetch --tags --force origin
+
+      - name: Validate dispatched tag is on main
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ -z "$TAG" ]; then
+            echo "tag input is required"
+            exit 1
+          fi
+          if ! git rev-parse --verify --quiet "refs/tags/${TAG}"; then
+            echo "Tag ${TAG} does not exist"
+            exit 1
+          fi
+          TAG_SHA="$(git rev-parse "${TAG}^{commit}")"
+          git fetch origin main
+          MAIN_SHA="$(git rev-parse origin/main)"
+          if ! git merge-base --is-ancestor "$TAG_SHA" "$MAIN_SHA"; then
+            echo "Tag ${TAG} (${TAG_SHA}) is not on main (${MAIN_SHA})"
+            exit 1
+          fi
+          HEAD_SHA="$(git rev-parse HEAD)"
+          if [ "$HEAD_SHA" != "$TAG_SHA" ]; then
+            echo "Checked-out HEAD ${HEAD_SHA} does not match tag ${TAG} (${TAG_SHA})"
+            exit 1
+          fi
+          echo "Publishing ${TAG} at ${TAG_SHA} (on main)"
+
+      - name: Skip if HEAD is untagged or GitHub release exists
+        id: gate
+        run: |
+          set -euo pipefail
+          TAG="$(git describe --tags --exact-match HEAD 2>/dev/null || true)"
+          if [ -z "$TAG" ]; then
+            echo "HEAD is not an exact tag; skip CurseForge publish"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "GitHub release $TAG already exists; skip"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
       - uses: oven-sh/setup-bun@v2
-      - name: Trace tagged release
+        if: steps.gate.outputs.skip != 'true'
+
+      - name: Confirm tag matches package, TOC, and changelog
+        if: steps.gate.outputs.skip != 'true'
         run: bun scripts/trace-release.ts --tagged
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: BigWigsMods/packager@v2
+        if: steps.gate.outputs.skip != 'true'
         with:
           args: -w 0

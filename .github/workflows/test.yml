@@ -3,8 +3,13 @@ name: Test
 on:
   push:
     branches: [master, main]
+  # Human PRs use this event so the workflow YAML comes from the PR branch.
+  pull_request:
+    branches: [master, main]
   # pull_request_target runs in base-branch context so github-actions[bot] PRs
-  # (e.g. changeset-release/master) are not held at the June 2026 approval gate.
+  # (e.g. changeset-release/main) are not held at the June 2026 approval gate.
+  # Jobs below only run it for changeset-release branches; after this lands on
+  # the default branch, human PRs are covered by pull_request alone.
   pull_request_target:
     branches: [master, main]
   # Version Packages pushes via GITHUB_TOKEN do not fire pull_request events.
@@ -34,6 +39,30 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
+  scripts:
+    if: >-
+      github.event_name == 'push'
+      || github.event_name == 'pull_request'
+      || (github.event_name == 'pull_request_target'
+        && github.event.pull_request.head.repo.full_name == github.repository
+        && startsWith(github.event.pull_request.head.ref, 'changeset-release/'))
+      || (github.event_name == 'workflow_run'
+        && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: >-
+            ${{
+              github.event_name == 'pull_request_target' && github.event.pull_request.head.sha
+              || github.event_name == 'workflow_run' && 'changeset-release/main'
+              || github.sha
+            }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun test scripts
+
   test:
     needs: gate-changeset-release
     if: >-
@@ -41,8 +70,10 @@ jobs:
       && !cancelled()
       && (
         github.event_name == 'push'
+        || github.event_name == 'pull_request'
         || (github.event_name == 'pull_request_target'
-          && github.event.pull_request.head.repo.full_name == github.repository)
+          && github.event.pull_request.head.repo.full_name == github.repository
+          && startsWith(github.event.pull_request.head.ref, 'changeset-release/'))
         || (github.event_name == 'workflow_run'
           && github.event.workflow_run.conclusion == 'success'
           && needs.gate-changeset-release.result == 'success'
@@ -60,10 +91,21 @@ jobs:
             }}
           persist-credentials: false
 
+      - uses: oven-sh/setup-bun@v2
+
       # Plain clone avoids actions/checkout auth cleanup hitting Mechanic's
       # broken submodule gitlinks (LibDBIcon-1.0 etc. with no .gitmodules URL).
+      # Pin to a known-good commit: floating HEAD plus `pip install -e desktop`
+      # (no extras) started failing when Mechanic 0.5.0 began importing afd,
+      # which pulls httpx only via the dev/client extra.
       - name: Checkout Mechanic
-        run: git clone --depth 1 https://github.com/Falkicon/Mechanic.git mechanic
+        env:
+          MECHANIC_SHA: 4cfcbb04ee67f8ff47b5cf64c61c2ac685650c82
+        run: |
+          git clone --filter=blob:none --no-checkout https://github.com/Falkicon/Mechanic.git mechanic
+          git -C mechanic fetch --depth 1 origin "$MECHANIC_SHA"
+          git -C mechanic checkout --detach "$MECHANIC_SHA"
+          test "$(git -C mechanic rev-parse HEAD)" = "$MECHANIC_SHA"
 
       - uses: actions/setup-python@v5
         with:
@@ -84,7 +126,7 @@ jobs:
           EOF
 
       - name: Install Mechanic CLI
-        run: pip install -e mechanic/desktop
+        run: python -m pip install -c mechanic/desktop/constraints-dev.txt -e "mechanic/desktop[dev]"
 
       # mech setup only auto-downloads tools on Windows/macOS; Linux needs system packages.
       - name: Install Lua and Busted
@@ -97,12 +139,21 @@ jobs:
         run: mech setup --skip-config
 
       - name: Generate sandbox stubs
-        run: mech call sandbox.generate
+        run: |
+          mech --json call sandbox.generate | tee mech-generate.json
+          bun scripts/assert-mech-result.ts mech-generate.json
+
+      # Mechanic sandbox.test globs Core/**/*_spec.lua (capital C). This addon
+      # keeps sources in core/; Ubuntu runners are case-sensitive.
+      - name: Map core/ for Mechanic sandbox discovery
+        run: if [ ! -e Core ]; then ln -sfn core Core; fi
 
       - name: Sandbox tests
         run: |
-          mech call sandbox.test '{"addon": "ProfessionTraitSearch", "path": "${{ github.workspace }}"}'
+          mech --json call sandbox.test '{"addon": "ProfessionTraitSearch", "path": "${{ github.workspace }}"}' | tee mech-sandbox.json
+          bun scripts/assert-mech-result.ts mech-sandbox.json
 
       - name: Busted tests
         run: |
-          mech call addon.test '{"addon": "ProfessionTraitSearch", "path": "${{ github.workspace }}"}'
+          mech --json call addon.test '{"addon": "ProfessionTraitSearch", "path": "${{ github.workspace }}"}' | tee mech-busted.json
+          bun scripts/assert-mech-result.ts mech-busted.json

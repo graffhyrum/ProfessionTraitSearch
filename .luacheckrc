@@ -1,6 +1,12 @@
 std = "lua51"
 max_line_length = 160
 
+-- WoW event/method handlers use unused `self` / `event` arguments by convention.
+ignore = {
+	"212",
+}
+
+-- Frames, slash commands, and saved variables the addon assigns to or hooks.
 globals = {
 	"LibStub",
 	"CreateFrame",
@@ -42,6 +48,7 @@ globals = {
 	"UIDropDownMenu_SetWidth",
 }
 
+-- Read-only WoW APIs and helpers. Declared explicitly (no std=wow blanket).
 read_globals = {
 	"C_AddOns",
 	"C_Timer",
@@ -52,6 +59,12 @@ read_globals = {
 	"Professions",
 	"GREEN_FONT_COLOR",
 	"GRAY_FONT_COLOR",
+	"GetProfessions",
+	"GetProfessionInfo",
+	"ShowUIPanel",
+	"RunNextFrame",
+	"tinsert",
+	"UISpecialFrames",
 }
 
 exclude_files = {
@@ -60,8 +73,4 @@ exclude_files = {
 	"**/*_spec.lua",
 	"Tests/**",
 	"scripts/**",
-}
-
-ignore = {
-	"212",
 }
