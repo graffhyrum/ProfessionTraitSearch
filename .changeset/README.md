@@ -23,7 +23,7 @@ On merge to `main`, **Version Packages** (`version-packages.yml`):
 1. Opens a **Version Packages** PR when pending changesets exist.
 2. On merge of that PR, runs `bun scripts/publish-tag.ts` → pushes `v{version}`.
 
-Tag push triggers **Release** (`release.yml`) → CurseForge + GitHub Release via BigWigs packager.
+**Release** (`release.yml`) publishes to CurseForge + GitHub via BigWigs packager on `v*` tag push, after a successful Version Packages run (`GITHUB_TOKEN` tag pushes do not fire `push: tags`), or via `workflow_dispatch` with a `tag` input that already points at a commit on `main`.
 
 ## Local
 
