@@ -106,6 +106,10 @@ release TAG:
 publish-tag:
     bun run publish:tag
 
+# Print the release chain. Exit 1 when a tag or version PR is missing.
+trace-release:
+    bun scripts/trace-release.ts --check
+
 package-local:
     bun scripts/package-local.ts
 
