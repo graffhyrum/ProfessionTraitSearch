@@ -123,3 +123,35 @@ bd prime                # Refresh Beads context
 
 **Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
 <!-- END BEADS CODEX SETUP -->
+
+## Cursor Cloud / Linux agents
+
+Linux agents do not have World of Warcraft or PowerShell. The `justfile` sets `windows-shell`, so `just test` and `just check` do not run here. Use the same Mechanic commands as `.github/workflows/test.yml`.
+
+CI pins Mechanic to `4cfcbb04ee67f8ff47b5cf64c61c2ac685650c82` and installs it with the declared constraints and dev extra (this pulls `httpx` for `afd`). A plain `pip install -e mechanic/desktop` is not enough:
+
+```bash
+python -m pip install -c mechanic/desktop/constraints-dev.txt -e "mechanic/desktop[dev]"
+```
+
+`sandbox.test` globs `Core/**/*_spec.lua` (capital C). This repo keeps sources in `core/`. On Linux, map it the same way CI does: `ln -sfn core Core` when `Core` does not already exist.
+
+`mech --json` exits 0 even when tests fail or find 0 tests. Fail closed with `bun scripts/assert-mech-result.ts` on the JSON output.
+
+```bash
+bun test scripts
+if [ ! -e Core ]; then ln -sfn core Core; fi
+PTS_ROOT="$PWD"
+mech --json call sandbox.generate | tee mech-generate.json
+bun scripts/assert-mech-result.ts mech-generate.json
+mech --json call sandbox.test '{"addon":"ProfessionTraitSearch","path":"'"$PWD"'"}' | tee mech-sandbox.json
+bun scripts/assert-mech-result.ts mech-sandbox.json
+mech --json call addon.test '{"addon":"ProfessionTraitSearch","path":"'"$PWD"'"}' | tee mech-busted.json
+bun scripts/assert-mech-result.ts mech-busted.json
+```
+
+- `sandbox.test` should run `Core/rank_util_spec.lua` (1 test) after the `core/` map.
+- `addon.test` is the Busted suite (`*_busted.lua`). Expect 91 passed.
+- `addon.validate` is not a CI gate. There is no `Wow.exe` here; skip `bun scripts/retail-status.ts` and `retail-bump`.
+- CurseForge scripts need `CF_API_KEY`. Tests do not.
+- The tracked `ProfessionTraitSearch` symlink points at a developer machine path and is broken in this environment. The addon root is the repository root. Do not follow that symlink.
