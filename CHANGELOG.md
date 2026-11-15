@@ -1,5 +1,11 @@
 # profession-trait-search
 
+## 1.0.5
+
+### Patch Changes
+
+- 538ec27: Bump Interface to 120105 for WoW 12.1.5
+
 ## 1.0.4
 
 ### Patch Changes
